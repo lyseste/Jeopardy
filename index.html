@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Jeopardy Board Builder</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="mainMenu">
+    <h2>Jeopardy Board Manager</h2>
+    <select id="boardSelect"></select>
+    <button id="newBoardBtn">New Board</button>
+    <button id="editBoardBtn">Edit</button>
+    <button id="playBoardBtn">Play</button>
+    <button id="deleteBoardBtn">Delete</button>
+    <button id="exportBoardBtn">Export JSON</button>
+    <input type="file" id="importFile">
+</div>
+
+<div id="editor" class="hidden">
+    <h2>Board Editor</h2>
+    Categories: <input type="number" id="catCount" value="5" min="1">
+    Questions per category: <input type="number" id="rowCount" value="5" min="1">
+    <button id="generateGridBtn">Generate</button>
+    <div id="editorGrid"></div>
+    <button id="saveBoardBtn">Save Board</button>
+    <button class="backBtn">Back</button>
+</div>
+
+<div id="playMode" class="hidden">
+    <button class="backBtn">Exit</button>
+    <button id="finalBtn">Final Jeopardy</button>
+    <button id="addTeamBtn">Add Team</button>
+    <table id="board"></table>
+    <div class="scoreboard" id="scoreboard"></div>
+    
+</div>
+
+<div id="questionModal" class="modal hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
