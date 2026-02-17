@@ -1,45 +1,104 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>Jeopardy Board Builder</title>
-<link rel="stylesheet" href="style.css">
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jeopardy</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
 
-<body>
+  <body>
+    <div id="mainMenu">
+      <h2>Jeopardy Creator</h2>
+      <button id="aboutInfo">i</button>
+      <button id="playBoardBtn">Play</button>
+      <select id="boardSelect"></select>
+      <div class="btnRowMain">
+        <button id="newBoardBtn">New Board</button>
+        <button id="editBoardBtn">Edit</button>
+        <button id="deleteBoardBtn">Delete</button>
+        <button id="exportBoardBtn">Export</button>
+        <button onclick="triggerImport()">Import</button>
+        <input type="file" id="importFile" accept=".json" hidden />
+      </div>
+    </div>
 
-<div id="mainMenu">
-    <h2>Jeopardy Board Manager</h2>
-    <select id="boardSelect"></select>
-    <button id="newBoardBtn">New Board</button>
-    <button id="editBoardBtn">Edit</button>
-    <button id="playBoardBtn">Play</button>
-    <button id="deleteBoardBtn">Delete</button>
-    <button id="exportBoardBtn">Export JSON</button>
-    <input type="file" id="importFile">
-</div>
+    <div id="editor" class="hidden">
+      <h2>Board Editor</h2>
+      Categories:
+      <input type="number" id="catCount" value="5" min="1" /> Questions per
+      category: <input type="number" id="rowCount" value="5" min="1" />
+      <button id="generateGridBtn">Generate</button>
+      <div id="editorGrid"></div>
+      <button id="saveBoardBtn">Save</button>
+      <button class="backBtn">Back</button>
+    </div>
 
-<div id="editor" class="hidden">
-    <h2>Board Editor</h2>
-    Categories: <input type="number" id="catCount" value="5" min="1">
-    Questions per category: <input type="number" id="rowCount" value="5" min="1">
-    <button id="generateGridBtn">Generate</button>
-    <div id="editorGrid"></div>
-    <button id="saveBoardBtn">Save Board</button>
-    <button class="backBtn">Back</button>
-</div>
+    <div id="playMode" class="hidden">
+      <button class="backBtn">Exit</button>
+      <button id="finalBtn">Final Jeopardy</button>
+      <table id="board"></table>
+      <div class="scoreboard" id="scoreboard"></div>
+      <div class="btnRowTeam">
+        <button id="addTeamBtn"><span>+</span></button>
+      </div>
+    </div>
 
-<div id="playMode" class="hidden">
-    <button class="backBtn">Exit</button>
-    <button id="finalBtn">Final Jeopardy</button>
-    <button id="addTeamBtn">Add Team</button>
-    <table id="board"></table>
-    <div class="scoreboard" id="scoreboard"></div>
+    <div id="questionModal" class="modal"></div>
     
-</div>
+    <div id="editorModal" class="modal">
+      <div class="editorCard">
+        <h2>Edit Question</h2>
 
-<div id="questionModal" class="modal hidden"></div>
+        <label>Point Value</label>
+        <input type="number" id="editValue" min="0" />
 
-<script src="app.js"></script>
-</body>
+        <label>Question Type</label>
+        <select id="editType">
+          <option value="text">Text</option>
+          <option value="video">Video</option>
+          <option value="audio">Audio</option>
+        </select>
+
+        <label>Question Text</label>
+        <textarea
+          class="editorTextArea"
+          id="editQuestionText"
+          rows="2"
+        ></textarea>
+
+        <label>Answer</label>
+        <textarea
+          class="editorTextArea"
+          id="editAnswerText"
+          rows="2"
+        ></textarea>
+
+        <label>Media Files (optional)</label>
+        <input type="file" id="editMedia" multiple />
+
+        <div style="margin-top: 20px">
+          <button id="saveQuestionBtn">Save</button>
+          <button id="cancelQuestionBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+      
+    <div id="infoModal" class="modal">
+        <div class="modalContent">
+            <h2>Jeopardy Creator App</h2>
+            <label>Made by Lys</label>
+            <div class="btnRowModal">
+                <!--<a class="linkbtn" href="https://twitter.com/lyseste" target="_blank"><i class="fa-brands fa-twitter"></i>Twitter</a>-->
+                <a class="modalBtn" href="https://github.com/lyseste/Jeopardy" target="_blank"><i class="fa-brands fa-github"></i>GitHub</a>
+                <button id="closeInfo" class="modalBtn"">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
 </html>

@@ -2,16 +2,20 @@
    Base Theme
 ========================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
 :root {
     --bg: #0f172a;
     --surface: #1e293b;
     --surface-light: #243449;
+    --surface-dark: #1e293bea;
     --primary: #3b82f6;
     --primary-hover: #2563eb;
     --text: #e2e8f0;
-    --muted: #94a3b8;
+    --muted: #7a818b;
     --border: #334155;
     --danger: #ef4444;
+    --scoreboard: rgba(15, 23, 42, 0.85);
 }
 
 * {
@@ -20,7 +24,7 @@
 
 body {
     margin: 0;
-    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-family: "Google Sans", system-ui, -apple-system, sans-serif;
     background: linear-gradient(135deg, #0f172a, #0b1120);
     color: var(--text);
     padding: 30px;
@@ -46,6 +50,7 @@ h3 {
 
 button {
     background: var(--surface);
+    font-family: "Google Sans", system-ui, -apple-system, sans-serif;
     color: var(--text);
     border: 1px solid var(--border);
     padding: 10px 18px;
@@ -66,12 +71,43 @@ button:active {
     transform: translateY(0);
 }
 
-/* Primary Buttons */
+.modalBtn {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    width: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    width: 80%;
+}
+
+.modalBtn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.btnRowModal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
 #newBoardBtn,
 #playBoardBtn,
 #generateGridBtn,
 #saveBoardBtn,
-#addTeamBtn,
 #finalBtn {
     background: var(--primary);
     border: none;
@@ -81,9 +117,79 @@ button:active {
 #playBoardBtn:hover,
 #generateGridBtn:hover,
 #saveBoardBtn:hover,
-#addTeamBtn:hover,
 #finalBtn:hover {
     background: var(--primary-hover);
+}
+
+.btnRowMain {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+}
+
+#playBoardBtn {
+    width: 100px;
+    margin-bottom: 20px;
+}
+
+#aboutInfo {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.btnRowTeam {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#addTeamBtn {
+    background: var(--scoreboard);
+    color: var(--text);
+    border: 1px solid var(--border);
+    height: 32px;
+    width: 32px;
+    margin: 6px;
+    cursor: pointer;
+    font-weight: 400;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#addTeamBtn:hover {
+    background: var(--primary);
+}
+
+#addTeamBtn span {
+    display: grid;
+    place-items: center;
+    line-height: 1;
+    transform: translateX(0px);
 }
 
 /* =========================
@@ -94,12 +200,18 @@ input,
 select,
 textarea {
     background: var(--surface);
+    font-family: "Google Sans", system-ui, -apple-system, sans-serif;
     color: var(--text);
     border: 1px solid var(--border);
     padding: 8px 12px;
     margin: 5px;
-    border-radius: 12px;
+    border-radius: 999px;
     transition: border 0.2s ease;
+    text-align: center;
+}
+
+textarea {
+    border-radius: 20px;
 }
 
 input:focus,
@@ -116,15 +228,39 @@ textarea:focus {
 #mainMenu,
 #editor,
 #playMode {
-    background: rgba(30, 41, 59, 0.6);
+    background: var(--surface-dark);
     backdrop-filter: blur(12px);
     padding: 16px;
+    padding-bottom: 30px;
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
 }
 
+#mainMenu,#editor {
+    text-align: center;
+}
+
+#editorGrid {
+    display: flex;
+    flex-direction: row;
+    padding-bottom: 30px;
+}
+
+#editorGrid button {
+    width: 80%;
+    height: 50px;
+    font-size: 14px;
+}
+
+.editorTileIcon {
+    margin: 4px;
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+
 #playMode {
-    padding-bottom: 140px;
+    padding-bottom: 30px;
 }
 
 .hidden {
@@ -146,7 +282,7 @@ textarea:focus {
     background: var(--surface-light);
     padding: 16px;
     border-radius: 16px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
@@ -155,22 +291,22 @@ textarea:focus {
     text-align: center;
 }
 
-/* Question Tiles */
-
 .tile {
     background: linear-gradient(145deg, #1e3a8a, #1d4ed8);
+    color: #f1e041;
+    font-weight: 800;
     border-radius: 16px;
     padding: 30px;
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
 }
 
 .tile:hover {
-    transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    transform: scale(1.03);
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 20px 25px -5px, rgba(0, 0, 0, 0.08) 0px 10px 10px -5px;
 }
 
 .tile.blank {
@@ -200,7 +336,7 @@ textarea:focus {
     padding: 40px;
     text-align: center;
     animation: fadeIn 0.2s ease;
-    z-index: 900;
+    z-index: 1000;
 }
 
 .modal h2 {
@@ -218,48 +354,132 @@ textarea:focus {
     to { opacity: 1; }
 }
 
+.editorCard, 
+.modalContent {
+    background: var(--surface-dark);
+    padding: 30px;
+    border-radius: 20px;
+    width: 600px;
+    max-width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.editorCard,.modalContent label {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.editorCard textarea {
+    resize: none;
+}
+
+.modalContent h2 {
+    font-size: 20px;
+    margin-bottom: 0px;
+}
+
+.modalContent label {
+    font-size: 16px;
+}
+
 /* =========================
    Scoreboard
 ========================= */
 
 .scoreboard {
-    margin-top: 50px;
+    margin-top: 30px;
     padding: 18px 28px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(12px);
-    border-radius: 26px;
     display: flex;
     gap: 18px;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
+    z-index: 100;
 }
 
 .team {
-    background: var(--surface);
-    padding: 12px 18px;
+    position: relative;
+    background: var(--scoreboard);
+    padding: 16px 30px;
     border-radius: 16px;
-    min-width: 140px;
+    min-width: 200px;
     text-align: center;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
     transition: 0.2s ease;
 }
 
-.team:hover {
-    transform: translateY(-3px);
+.teamName {
+    margin: 0;
+    font-weight: 600;
+    outline: none;
 }
 
-.team h4 {
-    margin: 0 0 6px 0;
-    font-weight: 600;
+.teamName:empty::before {
+    content: "Team Name";
+    color: var(--muted);
 }
 
 .team div {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--primary);
+}
+
+.removeTeamBtn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.removeTeamBtn:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--danger);
+}
+
+.teamControls {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.teamControls button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.teamControls button span,
+.removeTeamBtn span {
+    display: grid;
+    place-items: center;
+    line-height: 1;
+    transform: translateX(0.2px) translateY(-1px);
+}
+
+.removeTeamBtn span {
+    transform: translateX(0.5px) translateY(1px);
 }
