@@ -1,6 +1,8 @@
 let boards = JSON.parse(localStorage.getItem("jeopardyBoards") || "{}");
 let currentBoard = null;
 let currentQuestion = null;
+let editingMedia = [];
+let teams = [];
 
 const boardSelect = document.getElementById("boardSelect");
 const mainMenu = document.getElementById("mainMenu");
@@ -216,13 +218,116 @@ function editQuestion(c, r) {
   const q = currentBoard.categories[c].questions[r];
 
   document.getElementById("editValue").value = q.value;
+  document.getElementById("editHintCost").value = q.hintCost || 0;
   document.getElementById("editType").value = q.type;
   document.getElementById("editQuestionText").value = q.question;
   document.getElementById("editAnswerText").value = q.answer;
 
+  editingMedia = [];
+
+  if (q.media && Array.isArray(q.media)) {
+    q.media.forEach((file) => {
+      if (typeof file === "string") {
+        let detectedType = "";
+
+        if (file.startsWith("data:image")) detectedType = "image/*";
+        else if (file.startsWith("data:audio")) detectedType = "audio/*";
+        else if (file.startsWith("data:video")) detectedType = "video/*";
+
+        editingMedia.push({
+          name: "Imported File",
+          type: detectedType,
+          data: file,
+        });
+      } else if (typeof file === "object" && file.data) {
+        editingMedia.push(file);
+      }
+    });
+  }
+
+  renderMediaPreview();
+
   document.getElementById("editMedia").value = "";
 
   document.getElementById("editorModal").classList.add("active");
+}
+
+document.getElementById("addMediaBtn").onclick = () => {
+  document.getElementById("editMedia").click();
+};
+
+document.getElementById("editMedia").addEventListener("change", async (e) => {
+  const files = e.target.files;
+
+  for (let file of files) {
+    const base64 = await fileToBase64(file);
+    editingMedia.push({
+      name: file.name,
+      type: file.type,
+      data: base64,
+    });
+  }
+
+  renderMediaPreview();
+  e.target.value = "";
+});
+
+function renderMediaPreview() {
+  const container = document.getElementById("mediaPreviewList");
+  container.innerHTML = "";
+
+  editingMedia.forEach((file, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "mediaItem";
+
+    const previewWrapper = document.createElement("div");
+    previewWrapper.className = "mediaPreviewWrapper";
+
+    let preview;
+
+    if (file.type.startsWith("image/")) {
+      preview = document.createElement("img");
+      preview.src = file.data;
+    } else if (file.type.startsWith("audio/")) {
+      preview = document.createElement("audio");
+      preview.src = file.data;
+      preview.controls = true;
+    } else if (file.type.startsWith("video/")) {
+      preview = document.createElement("video");
+      preview.src = file.data;
+      preview.controls = true;
+    } else {
+      preview = document.createElement("div");
+      preview.textContent = file.name;
+    }
+
+    preview.className = "mediaPreview";
+
+    const labelInput = document.createElement("input");
+    labelInput.type = "text";
+    labelInput.placeholder = "Optional label: $(hint) to insert hint cost";
+    labelInput.value = file.label || "";
+    labelInput.className = "mediaLabelInput";
+
+    labelInput.addEventListener("input", () => {
+      file.label = labelInput.value;
+    });
+
+    const removeBtn = document.createElement("button");
+    removeBtn.innerHTML = "<span>✕</span>";
+    removeBtn.className = "removeMediaBtn";
+    removeBtn.onclick = () => {
+      editingMedia.splice(index, 1);
+      renderMediaPreview();
+    };
+
+    previewWrapper.appendChild(preview);
+    previewWrapper.appendChild(removeBtn);
+
+    wrapper.appendChild(labelInput);
+    wrapper.appendChild(previewWrapper);
+    container.appendChild(wrapper);
+  });
 }
 
 document.getElementById("cancelQuestionBtn").onclick = () => {
@@ -234,9 +339,12 @@ document.getElementById("saveQuestionBtn").onclick = async () => {
   const q = currentBoard.categories[c].questions[r];
 
   q.value = parseInt(document.getElementById("editValue").value) || 0;
+  q.hintCost = parseInt(document.getElementById("editHintCost").value) || 0;
   q.type = document.getElementById("editType").value;
   q.question = document.getElementById("editQuestionText").value;
   q.answer = document.getElementById("editAnswerText").value;
+
+  q.media = [...editingMedia];
 
   if (q._editorButton) {
     const valueEl = q._editorButton.querySelector(".editorTileValue");
@@ -254,16 +362,6 @@ document.getElementById("saveQuestionBtn").onclick = async () => {
   q.type = document.getElementById("editType").value;
   q.question = document.getElementById("editQuestionText").value;
   q.answer = document.getElementById("editAnswerText").value;
-
-  const files = document.getElementById("editMedia").files;
-
-  if (files.length > 0) {
-    q.media = [];
-    for (let file of files) {
-      const base64 = await fileToBase64(file);
-      q.media.push(base64);
-    }
-  }
 
   document.getElementById("editorModal").classList.remove("active");
 
@@ -319,57 +417,118 @@ function buildBoard() {
 function openQuestion(c, r, tile) {
   currentQuestion = { c, r, tile };
   const q = currentBoard.categories[c].questions[r];
+  const category = currentBoard.categories[c];
 
   questionModal.innerHTML = "";
   questionModal.classList.add("active");
 
   const content = document.createElement("div");
+  content.className = "questionContent";
 
-  if (q.type === "text") {
-    content.innerHTML = `<h2>${q.question}</h2>`;
+  /* --------------------------
+     HEADER (Category + Value)
+  -------------------------- */
+  const header = document.createElement("h2");
+  header.className = "questionHeader";
+  header.textContent = `${category.title}  $${q.value}`;
+  content.appendChild(header);
+
+  /* --------------------------
+     QUESTION TEXT (Always if exists)
+  -------------------------- */
+  if (q.question && q.question.trim() !== "") {
+    const questionText = document.createElement("div");
+    questionText.className = "questionText";
+    questionText.textContent = q.question;
+    content.appendChild(questionText);
   }
 
-  if (q.type === "video") {
-    q.media.forEach((src) => {
-      const video = document.createElement("video");
-      video.src = src;
-      video.controls = true;
-      video.style.maxWidth = "600px";
-      video.style.marginBottom = "15px";
-      content.appendChild(video);
+  /* --------------------------
+     ANSWER (Hidden Initially)
+  -------------------------- */
+  const answerEl = document.createElement("div");
+  answerEl.className = "questionAnswer";
+  answerEl.classList.add("hiddenAnswer");
+  answerEl.textContent = q.answer;
+  content.appendChild(answerEl);
+
+  /* --------------------------
+     MEDIA (Below question/answer)
+  -------------------------- */
+  if (q.media && q.media.length > 0) {
+    const mediaContainer = document.createElement("div");
+    mediaContainer.className = "questionMedia";
+
+    q.media.forEach((file) => {
+      const fileData = typeof file === "string" ? file : file.data;
+      const fileType = typeof file === "string" ? "" : file.type;
+      const labelText =
+        typeof file === "object" && file.label
+          ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${q.hintCost || 0}`)
+          : "";
+
+      let element;
+
+      if (fileType.startsWith("video/") || fileData.startsWith("data:video")) {
+        element = document.createElement("video");
+        element.controls = true;
+        element.style.maxWidth = "80vw";
+      } else if (
+        fileType.startsWith("audio/") ||
+        fileData.startsWith("data:audio")
+      ) {
+        element = document.createElement("audio");
+        element.controls = true;
+      } else if (
+        fileType.startsWith("image/") ||
+        fileData.startsWith("data:image")
+      ) {
+        element = document.createElement("img");
+        element.style.maxWidth = "600px";
+      }
+
+      if (element) {
+        element.src = fileData;
+
+        // Wrap media and label
+        const wrapper = document.createElement("div");
+        wrapper.className = "questionMediaWrapper";
+        
+        wrapper.appendChild(element);
+
+        // Add label if exists
+        if (labelText.trim() !== "") {
+          const labelEl = document.createElement("span");
+          labelEl.textContent = labelText;
+          labelEl.className = "questionMediaLabel";
+          wrapper.appendChild(labelEl);
+        }
+
+        
+
+        mediaContainer.appendChild(wrapper);
+      }
     });
-  }
 
-  if (q.type === "audio") {
-    q.media.forEach((src) => {
-      const audio = document.createElement("audio");
-      audio.src = src;
-      audio.controls = true;
-      audio.style.marginBottom = "15px";
-      content.appendChild(audio);
-    });
-  }
-
-  if (q.question && q.type !== "text") {
-    const text = document.createElement("h2");
-    text.textContent = q.question;
-    content.appendChild(text);
+    content.appendChild(mediaContainer);
   }
 
   questionModal.appendChild(content);
 
+  /* --------------------------
+     BUTTON ROW
+  -------------------------- */
+  const buttonRow = document.createElement("div");
+  buttonRow.className = "questionButtons";
+
   const showAns = document.createElement("button");
   showAns.textContent = "Show Answer";
   showAns.onclick = () => {
-    const ans = document.createElement("h3");
-    ans.textContent = q.answer;
-    questionModal.appendChild(ans);
+    answerEl.classList.add("visibleAnswer");
 
     tile.classList.add("blank");
     tile.textContent = "";
   };
-
-  questionModal.appendChild(showAns);
 
   const back = document.createElement("button");
   back.textContent = "Back to Board";
@@ -377,57 +536,84 @@ function openQuestion(c, r, tile) {
     questionModal.classList.remove("active");
   };
 
-  questionModal.appendChild(back);
+  buttonRow.appendChild(showAns);
+  buttonRow.appendChild(back);
+
+  questionModal.appendChild(buttonRow);
 }
 
 function addTeam() {
   let teamDiv = document.createElement("div");
   teamDiv.className = "team";
 
-  // Remove button
   let removeBtn = document.createElement("button");
   removeBtn.className = "removeTeamBtn";
   removeBtn.innerHTML = "<span>✕</span>";
   removeBtn.onclick = () => {
     teamDiv.remove();
+    teams = teams.filter((t) => t.div !== teamDiv);
   };
 
-  // Editable name
   let name = document.createElement("h4");
   name.contentEditable = true;
   name.textContent = "";
   name.className = "teamName";
+  setTimeout(() => name.focus(), 0);
 
-  // Auto-focus name after adding
-  setTimeout(() => {
-    name.focus();
-  }, 0);
-
-  // Score display
-  let score = 0;
   let scoreDiv = document.createElement("div");
-  scoreDiv.textContent = score;
+  scoreDiv.className = "teamScore";
 
-  // Add/Subtract buttons
+  const team = { div: teamDiv, name, scoreDiv, score: 0 };
+
+  scoreDiv.textContent = team.score;
+  scoreDiv.contentEditable = true;
+  scoreDiv.addEventListener("blur", () => {
+    let raw = scoreDiv.textContent.trim();
+    let isNegative = raw.startsWith("-");
+    let numericPart = raw.replace(/\D/g, "");
+    let value = parseInt(numericPart) || 0;
+    if (isNegative) value = -value;
+    team.score = value;
+    scoreDiv.textContent = team.score;
+    updateScoreboard();
+  });
+
   let controls = document.createElement("div");
   controls.className = "teamControls";
 
   let addBtn = document.createElement("button");
   addBtn.innerHTML = "<span>+</span>";
+  addBtn.className = "teamAddBtn";
   addBtn.onclick = () => {
-    score += 100;
-    scoreDiv.textContent = score;
+    team.score += getLastQuestionValue();
+    updateScoreboard();
   };
 
   let subBtn = document.createElement("button");
   subBtn.innerHTML = "<span>−</span>";
+  subBtn.className = "teamSubBtn";
   subBtn.onclick = () => {
-    score -= 100;
-    scoreDiv.textContent = score;
+    team.score -= getLastQuestionValue();
+    updateScoreboard();
+  };
+
+  const hintBtn = document.createElement("button");
+  hintBtn.innerHTML = "<span>?</span>";
+  hintBtn.className = "teamHintBtn";
+  hintBtn.onclick = () => {
+    if (!currentQuestion) return;
+
+    const { c, r } = currentQuestion;
+    const q = currentBoard.categories[c].questions[r];
+    const cost = q.hintCost || 0;
+
+    team.score -= cost;
+    updateScoreboard();
   };
 
   controls.appendChild(addBtn);
   controls.appendChild(subBtn);
+  controls.appendChild(hintBtn);
 
   teamDiv.appendChild(removeBtn);
   teamDiv.appendChild(name);
@@ -435,6 +621,23 @@ function addTeam() {
   teamDiv.appendChild(controls);
 
   scoreboard.appendChild(teamDiv);
+
+  teams.push(team);
+}
+
+function updateScoreboard() {
+  teams.forEach((team) => {
+    team.scoreDiv.textContent = team.score;
+  });
+}
+
+function getLastQuestionValue() {
+  if (!currentQuestion) return 0;
+
+  const { c, r } = currentQuestion;
+  const q = currentBoard.categories[c].questions[r];
+
+  return q.value || 0;
 }
 
 function showFinal() {

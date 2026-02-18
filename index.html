@@ -55,6 +55,9 @@
 
         <label>Point Value</label>
         <input type="number" id="editValue" min="0" />
+        
+        <label>Hint Cost</label>
+        <input type="number" id="editHintCost" min="0" />
 
         <label>Question Type</label>
         <select id="editType">
@@ -67,18 +70,23 @@
         <textarea
           class="editorTextArea"
           id="editQuestionText"
-          rows="2"
+          rows="1"
         ></textarea>
 
         <label>Answer</label>
         <textarea
           class="editorTextArea"
           id="editAnswerText"
-          rows="2"
+          rows="1"
         ></textarea>
 
-        <label>Media Files (optional)</label>
-        <input type="file" id="editMedia" multiple />
+        <label>Media Files</label>
+        <div class="mediaSection">
+          <button type="button" id="addMediaBtn" class="linkbtn">Add Media</button>
+          <input type="file" id="editMedia" multiple hidden />
+          <div id="mediaPreviewList" class="mediaPreviewList"></div>
+        </div>
+
 
         <div style="margin-top: 20px">
           <button id="saveQuestionBtn">Save</button>
