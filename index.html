@@ -2,7 +2,8 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Jeopardy</title>
+    <title>Jeopardy by Lys</title>
+    <link rel="icon" type="image/x-icon" href="https://ik.imagekit.io/lyseste/lyseste-site/lys-logomark.png?tr=w-50,h-50">
     <link rel="stylesheet" href="style.css" />
     <link
       rel="stylesheet"
@@ -11,6 +12,7 @@
   </head>
 
   <body>
+    <div id="toastContainer" class="toastContainer"></div>
     <div id="mainMenu">
       <h2>Jeopardy Creator</h2>
       <button id="aboutInfo">i</button>
@@ -21,7 +23,7 @@
         <button id="editBoardBtn">Edit</button>
         <button id="deleteBoardBtn">Delete</button>
         <button id="exportBoardBtn">Export</button>
-        <button onclick="triggerImport()">Import</button>
+        <button id="importBoardBtn">Import</button>
         <input type="file" id="importFile" accept=".json" hidden />
       </div>
     </div>
@@ -31,7 +33,7 @@
       Categories:
       <input type="number" id="catCount" value="5" min="1" /> Questions per
       category: <input type="number" id="rowCount" value="5" min="1" />
-      <button id="generateGridBtn">Generate</button>
+      <button id="generateGridBtn">Update</button>
       <div id="editorGrid"></div>
       <button id="saveBoardBtn">Save</button>
       <button class="backBtn">Back</button>
@@ -67,18 +69,9 @@
         </select>
 
         <label>Question Text</label>
-        <textarea
-          class="editorTextArea"
-          id="editQuestionText"
-          rows="1"
-        ></textarea>
-
+        <input type="text" class="editorTextArea" id="editQuestionText"/>
         <label>Answer</label>
-        <textarea
-          class="editorTextArea"
-          id="editAnswerText"
-          rows="1"
-        ></textarea>
+        <input type="text" class="editorTextArea" id="editAnswerText"/>
 
         <label>Media Files</label>
         <div class="mediaSection">
@@ -86,9 +79,7 @@
           <input type="file" id="editMedia" multiple hidden />
           <div id="mediaPreviewList" class="mediaPreviewList"></div>
         </div>
-
-
-        <div style="margin-top: 20px">
+        <div class="editorButtons">
           <button id="saveQuestionBtn">Save</button>
           <button id="cancelQuestionBtn">Cancel</button>
         </div>
@@ -99,6 +90,7 @@
         <div class="modalContent">
             <h2>Jeopardy Creator App</h2>
             <label>Made by Lys</label>
+            <label class="appVersion">App Version 1.0.0</label>
             <div class="btnRowModal">
                 <!--<a class="linkbtn" href="https://twitter.com/lyseste" target="_blank"><i class="fa-brands fa-twitter"></i>Twitter</a>-->
                 <a class="modalBtn" href="https://github.com/lyseste/Jeopardy" target="_blank"><i class="fa-brands fa-github"></i>GitHub</a>

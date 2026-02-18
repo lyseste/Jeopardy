@@ -3,6 +3,7 @@ let currentBoard = null;
 let currentQuestion = null;
 let editingMedia = [];
 let teams = [];
+let mediaDB;
 
 const boardSelect = document.getElementById("boardSelect");
 const mainMenu = document.getElementById("mainMenu");
@@ -10,6 +11,8 @@ const editor = document.getElementById("editor");
 const playMode = document.getElementById("playMode");
 const questionModal = document.getElementById("questionModal");
 const scoreboard = document.getElementById("scoreboard");
+
+
 
 function saveLocal() {
   localStorage.setItem("jeopardyBoards", JSON.stringify(boards));
@@ -26,22 +29,93 @@ function refreshDropdown() {
 }
 refreshDropdown();
 
+/* ---------- MEDIA DB ---------- */
+
+async function initMediaDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("QuizMediaDB", 1);
+
+    request.onupgradeneeded = function (event) {
+      mediaDB = event.target.result;
+      if (!mediaDB.objectStoreNames.contains("media")) {
+        mediaDB.createObjectStore("media", { keyPath: "id" });
+      }
+    };
+
+    request.onsuccess = function (event) {
+      mediaDB = event.target.result;
+      resolve();
+    };
+
+    request.onerror = function () {
+      reject("IndexedDB failed to open.");
+    };
+  });
+}
+initMediaDB();
+
+function saveMediaBlob(id, blob) {
+  return new Promise((resolve, reject) => {
+    const tx = mediaDB.transaction("media", "readwrite");
+    const store = tx.objectStore("media");
+
+    store.put({ id, blob });
+
+    tx.oncomplete = resolve;
+    tx.onerror = reject;
+  });
+}
+
+function getMediaBlob(id) {
+  return new Promise((resolve, reject) => {
+    const tx = mediaDB.transaction("media", "readonly");
+    const store = tx.objectStore("media");
+
+    const request = store.get(id);
+
+    request.onsuccess = () => {
+      resolve(request.result ? request.result.blob : null);
+    };
+
+    request.onerror = reject;
+  });
+}
+
+function deleteMediaBlob(id) {
+  const tx = mediaDB.transaction("media", "readwrite");
+  tx.objectStore("media").delete(id);
+}
+
 /* ---------- MENU ACTIONS ---------- */
 
-document.getElementById("newBoardBtn").onclick = createBoard;
-document.getElementById("editBoardBtn").onclick = editBoard;
-document.getElementById("playBoardBtn").onclick = playBoard;
-document.getElementById("deleteBoardBtn").onclick = deleteBoard;
-document.getElementById("exportBoardBtn").onclick = exportBoard;
-document.getElementById("importFile").onchange = importBoard;
-document.getElementById("generateGridBtn").onclick = generateGrid;
-document.getElementById("saveBoardBtn").onclick = saveBoard;
-document.getElementById("addTeamBtn").onclick = addTeam;
-document.getElementById("finalBtn").onclick = showFinal;
+async function initApp() {
+  // Load boards
+  boards = JSON.parse(localStorage.getItem("jeopardyBoards") || "{}");
 
-document.querySelectorAll(".backBtn").forEach((btn) => {
-  btn.onclick = backToMenu;
-});
+  // Initialize IndexedDB
+  await initMediaDB();
+
+  // Refresh dropdown
+  refreshDropdown();
+
+  // Attach event listeners (menu buttons, file inputs, etc.)
+  document.getElementById("newBoardBtn").onclick = createBoard;
+  document.getElementById("editBoardBtn").onclick = editBoard;
+  document.getElementById("playBoardBtn").onclick = playBoard;
+  document.getElementById("deleteBoardBtn").onclick = deleteBoard;
+  document.getElementById("exportBoardBtn").onclick = exportBoard;
+  document.getElementById("importFile").onchange = importBoard;
+  document.getElementById("generateGridBtn").onclick = generateGrid;
+  document.getElementById("saveBoardBtn").onclick = saveBoard;
+  document.getElementById("addTeamBtn").onclick = addTeam;
+  document.getElementById("finalBtn").onclick = openFinalQuestion;
+
+  document.querySelectorAll(".backBtn").forEach((btn) => {
+    btn.onclick = backToMenu;
+  });
+}
+initApp();
+
 
 const aboutBtn = document.getElementById("aboutInfo");
 const infoModal = document.getElementById("infoModal");
@@ -155,10 +229,13 @@ function renderEditorGrid() {
   const grid = document.getElementById("editorGrid");
   grid.innerHTML = "";
 
+  const columnsRow = document.createElement("div");
+  columnsRow.className = "editorGridColumns";
   for (let c = 0; c < currentBoard.visibleCategories; c++) {
     let category = currentBoard.categories[c];
 
     let div = document.createElement("div");
+    div.className = "editorColumn";
 
     let title = document.createElement("h3");
     title.contentEditable = true;
@@ -195,8 +272,19 @@ function renderEditorGrid() {
       div.appendChild(btn);
     }
 
-    grid.appendChild(div);
+    columnsRow.appendChild(div);
   }
+  grid.appendChild(columnsRow);
+
+  const finalRow = document.createElement("div");
+  finalRow.className = "finalRow";
+  const editFinalBtn = document.createElement("button");
+  editFinalBtn.textContent = "Final Jeopardy";
+  editFinalBtn.className = "editFinalBtn";
+  editFinalBtn.onclick = () => editFinal();
+
+  finalRow.appendChild(editFinalBtn);
+  grid.appendChild(finalRow);
 }
 
 function getQuestionIconClass(type) {
@@ -213,43 +301,45 @@ function getQuestionIconClass(type) {
 
 let editingCoords = null;
 
-function editQuestion(c, r) {
-  editingCoords = { c, r };
-  const q = currentBoard.categories[c].questions[r];
+async function editQuestion(c, r) {
+  try {
+    editingCoords = { c, r };
+    const q = currentBoard.categories[c].questions[r];
 
-  document.getElementById("editValue").value = q.value;
-  document.getElementById("editHintCost").value = q.hintCost || 0;
-  document.getElementById("editType").value = q.type;
-  document.getElementById("editQuestionText").value = q.question;
-  document.getElementById("editAnswerText").value = q.answer;
+    document.getElementById("editValue").value = q.value;
+    document.getElementById("editHintCost").value = q.hintCost || 0;
+    document.getElementById("editType").value = q.type;
+    document.getElementById("editQuestionText").value = q.question;
+    document.getElementById("editAnswerText").value = q.answer;
 
-  editingMedia = [];
+    editingMedia = [];
 
-  if (q.media && Array.isArray(q.media)) {
-    q.media.forEach((file) => {
-      if (typeof file === "string") {
-        let detectedType = "";
-
-        if (file.startsWith("data:image")) detectedType = "image/*";
-        else if (file.startsWith("data:audio")) detectedType = "audio/*";
-        else if (file.startsWith("data:video")) detectedType = "video/*";
-
-        editingMedia.push({
-          name: "Imported File",
-          type: detectedType,
-          data: file,
-        });
-      } else if (typeof file === "object" && file.data) {
-        editingMedia.push(file);
+    if (q.media && Array.isArray(q.media)) {
+      for (let m of q.media) {
+        try {
+          const blob = await getMediaBlob(m.mediaId);
+          if (!blob) continue;
+          editingMedia.push({
+            mediaId: m.mediaId,
+            label: m.label || "",
+            type: blob.type,
+            name: m.name || "Imported File",
+            tempFile: blob
+          });
+        } catch (err) {
+          console.warn("Failed to load media", m, err);
+        }
       }
-    });
+    }
+
+    await renderMediaPreview();
+
+    document.getElementById("editMedia").value = "";
+    document.getElementById("editorModal").classList.add("active");
+  } catch (err) {
+    console.error("Error opening editor:", err);
+    alert("Failed to open editor. See console for details.");
   }
-
-  renderMediaPreview();
-
-  document.getElementById("editMedia").value = "";
-
-  document.getElementById("editorModal").classList.add("active");
 }
 
 document.getElementById("addMediaBtn").onclick = () => {
@@ -260,11 +350,15 @@ document.getElementById("editMedia").addEventListener("change", async (e) => {
   const files = e.target.files;
 
   for (let file of files) {
-    const base64 = await fileToBase64(file);
+    const mediaId = "media_" + crypto.randomUUID();
+
+    await saveMediaBlob(mediaId, file);
+
     editingMedia.push({
-      name: file.name,
+      mediaId: mediaId,
+      label: "",
       type: file.type,
-      data: base64,
+      name: file.name
     });
   }
 
@@ -272,11 +366,59 @@ document.getElementById("editMedia").addEventListener("change", async (e) => {
   e.target.value = "";
 });
 
-function renderMediaPreview() {
+function editFinal() {
+  if (!currentBoard.final) {
+    currentBoard.final = {
+      value: 0,
+      type: "text",
+      question: "",
+      answer: "",
+      media: [],
+      hintCost: 0
+    };
+  }
+  editQuestionFinal(currentBoard.final);
+}
+
+async function editQuestionFinal(finalQuestion) {
+  // Temporarily store coordinates as null
+  editingCoords = null;
+  const q = finalQuestion;
+
+  document.getElementById("editValue").value = q.value || 0;
+  document.getElementById("editHintCost").value = q.hintCost || 0;
+  document.getElementById("editType").value = q.type || "text";
+  document.getElementById("editQuestionText").value = q.question || "";
+  document.getElementById("editAnswerText").value = q.answer || "";
+
+  editingMedia = [];
+
+  if (q.media && Array.isArray(q.media)) {
+    for (let m of q.media) {
+      if (!m.mediaId) continue;
+      const blob = await getMediaBlob(m.mediaId);
+      if (!blob) continue;
+      editingMedia.push({
+        mediaId: m.mediaId,
+        label: m.label || "",
+        type: blob.type,
+        name: m.name || "Imported File",
+        tempFile: blob
+      });
+    }
+  }
+
+  renderMediaPreview();
+  document.getElementById("editMedia").value = "";
+  document.getElementById("editorModal").classList.add("active");
+}
+
+async function renderMediaPreview() {
   const container = document.getElementById("mediaPreviewList");
   container.innerHTML = "";
 
-  editingMedia.forEach((file, index) => {
+  for (let index = 0; index < editingMedia.length; index++) {
+    const file = editingMedia[index];
     const wrapper = document.createElement("div");
     wrapper.className = "mediaItem";
 
@@ -287,18 +429,20 @@ function renderMediaPreview() {
 
     if (file.type.startsWith("image/")) {
       preview = document.createElement("img");
-      preview.src = file.data;
     } else if (file.type.startsWith("audio/")) {
       preview = document.createElement("audio");
-      preview.src = file.data;
       preview.controls = true;
     } else if (file.type.startsWith("video/")) {
       preview = document.createElement("video");
-      preview.src = file.data;
       preview.controls = true;
     } else {
       preview = document.createElement("div");
       preview.textContent = file.name;
+    }
+
+    if (file.mediaId) {
+      const blob = await getMediaBlob(file.mediaId);
+      if (blob) preview.src = URL.createObjectURL(blob);
     }
 
     preview.className = "mediaPreview";
@@ -317,6 +461,7 @@ function renderMediaPreview() {
     removeBtn.innerHTML = "<span>✕</span>";
     removeBtn.className = "removeMediaBtn";
     removeBtn.onclick = () => {
+      if (file.mediaId) deleteMediaBlob(file.mediaId);
       editingMedia.splice(index, 1);
       renderMediaPreview();
     };
@@ -327,7 +472,7 @@ function renderMediaPreview() {
     wrapper.appendChild(labelInput);
     wrapper.appendChild(previewWrapper);
     container.appendChild(wrapper);
-  });
+  }
 }
 
 document.getElementById("cancelQuestionBtn").onclick = () => {
@@ -335,8 +480,15 @@ document.getElementById("cancelQuestionBtn").onclick = () => {
 };
 
 document.getElementById("saveQuestionBtn").onclick = async () => {
-  const { c, r } = editingCoords;
-  const q = currentBoard.categories[c].questions[r];
+  let q;
+
+  if (editingCoords) {
+    const { c, r } = editingCoords;
+    q = currentBoard.categories[c].questions[r];
+  } else {
+    // Saving Final Jeopardy
+    q = currentBoard.final;
+  }
 
   q.value = parseInt(document.getElementById("editValue").value) || 0;
   q.hintCost = parseInt(document.getElementById("editHintCost").value) || 0;
@@ -344,7 +496,22 @@ document.getElementById("saveQuestionBtn").onclick = async () => {
   q.question = document.getElementById("editQuestionText").value;
   q.answer = document.getElementById("editAnswerText").value;
 
-  q.media = [...editingMedia];
+  const finalMedia = [];
+
+  for (let m of editingMedia) {
+    if (m.tempFile) {
+      await saveMediaBlob(m.mediaId, m.tempFile);
+    }
+
+    finalMedia.push({
+      mediaId: m.mediaId,
+      label: m.label || "",
+      type: m.type,
+      name: m.name
+    });
+  }
+
+  q.media = finalMedia;
 
   if (q._editorButton) {
     const valueEl = q._editorButton.querySelector(".editorTileValue");
@@ -379,8 +546,29 @@ function fileToBase64(file) {
 
 function saveBoard() {
   saveLocal();
-  alert("Saved!");
+  showToast("Saved!");
 }
+
+function showToast(message, duration = 2000) {
+  const container = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  // Animate in
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 10);
+
+  // Animate out and remove
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => container.removeChild(toast), 400);
+  }, duration);
+}
+
 
 /* ---------- PLAY MODE ---------- */
 
@@ -414,7 +602,7 @@ function buildBoard() {
   }
 }
 
-function openQuestion(c, r, tile) {
+async function openQuestion(c, r, tile) {
   currentQuestion = { c, r, tile };
   const q = currentBoard.categories[c].questions[r];
   const category = currentBoard.categories[c];
@@ -455,63 +643,73 @@ function openQuestion(c, r, tile) {
   /* --------------------------
      MEDIA (Below question/answer)
   -------------------------- */
+  /* --------------------------
+     MEDIA (Below question/answer)
+  -------------------------- */
   if (q.media && q.media.length > 0) {
     const mediaContainer = document.createElement("div");
     mediaContainer.className = "questionMedia";
 
-    q.media.forEach((file) => {
-      const fileData = typeof file === "string" ? file : file.data;
-      const fileType = typeof file === "string" ? "" : file.type;
-      const labelText =
-        typeof file === "object" && file.label
-          ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${q.hintCost || 0}`)
-          : "";
+    let missingMediaDetected = false;
+
+    for (let file of q.media) {
+      const blob = await getMediaBlob(file.mediaId);
+
+      if (!blob) {
+        missingMediaDetected = true;
+        continue;
+      }
+
+      const url = URL.createObjectURL(blob);
+
+      const labelText = file.label
+        ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${q.hintCost || 0}`)
+        : "";
 
       let element;
 
-      if (fileType.startsWith("video/") || fileData.startsWith("data:video")) {
+      if (blob.type.startsWith("video/")) {
         element = document.createElement("video");
         element.controls = true;
         element.style.maxWidth = "80vw";
-      } else if (
-        fileType.startsWith("audio/") ||
-        fileData.startsWith("data:audio")
-      ) {
+      } else if (blob.type.startsWith("audio/")) {
         element = document.createElement("audio");
         element.controls = true;
-      } else if (
-        fileType.startsWith("image/") ||
-        fileData.startsWith("data:image")
-      ) {
+      } else if (blob.type.startsWith("image/")) {
         element = document.createElement("img");
         element.style.maxWidth = "600px";
       }
 
       if (element) {
-        element.src = fileData;
+        element.src = url;
 
-        // Wrap media and label
         const wrapper = document.createElement("div");
         wrapper.className = "questionMediaWrapper";
-        
+
         wrapper.appendChild(element);
 
-        // Add label if exists
-        if (labelText.trim() !== "") {
+        if (labelText.trim()) {
           const labelEl = document.createElement("span");
           labelEl.textContent = labelText;
           labelEl.className = "questionMediaLabel";
           wrapper.appendChild(labelEl);
         }
 
-        
-
         mediaContainer.appendChild(wrapper);
       }
-    });
+    }
+
+    if (missingMediaDetected) {
+      const warning = document.createElement("div");
+      warning.className = "missingMediaWarning";
+      warning.textContent =
+        "Media file missing. Please re-import the board.";
+      mediaContainer.appendChild(warning);
+    }
 
     content.appendChild(mediaContainer);
   }
+
 
   questionModal.appendChild(content);
 
@@ -541,6 +739,121 @@ function openQuestion(c, r, tile) {
 
   questionModal.appendChild(buttonRow);
 }
+
+function openFinalQuestion() {
+  if (!currentBoard.final) return;
+  openQuestionFinal(currentBoard.final, "Final Jeopardy");
+}
+
+async function openQuestionFinal(finalQ, title = "Final Jeopardy") {
+  questionModal.innerHTML = "";
+  questionModal.classList.add("active");
+
+  const content = document.createElement("div");
+  content.className = "questionContent";
+
+  const header = document.createElement("h2");
+  header.className = "questionHeader";
+  header.textContent = `${title}`;
+  content.appendChild(header);
+
+  if (finalQ.question) {
+    const questionText = document.createElement("div");
+    questionText.className = "questionText";
+    questionText.textContent = finalQ.question;
+    content.appendChild(questionText);
+  }
+
+  const answerEl = document.createElement("div");
+  answerEl.className = "questionAnswer hiddenAnswer";
+  answerEl.textContent = finalQ.answer;
+  content.appendChild(answerEl);
+
+  if (finalQ.media && finalQ.media.length > 0) {
+    const mediaContainer = document.createElement("div");
+    mediaContainer.className = "questionMedia";
+
+    let missingMediaDetected = false;
+
+    for (let file of finalQ.media) {
+      const blob = await getMediaBlob(file.mediaId);
+
+      if (!blob) {
+        missingMediaDetected = true;
+        continue;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const labelText = file.label
+        ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${finalQ.hintCost || 0}`)
+        : "";
+
+      let element;
+
+      if (blob.type.startsWith("video/")) {
+        element = document.createElement("video");
+        element.controls = true;
+        element.style.maxWidth = "80vw";
+      } else if (blob.type.startsWith("audio/")) {
+        element = document.createElement("audio");
+        element.controls = true;
+      } else if (blob.type.startsWith("image/")) {
+        element = document.createElement("img");
+        element.style.maxWidth = "600px";
+      }
+
+      if (element) {
+        element.src = url;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "questionMediaWrapper";
+
+        wrapper.appendChild(element);
+
+        if (labelText.trim()) {
+          const labelEl = document.createElement("span");
+          labelEl.textContent = labelText;
+          labelEl.className = "questionMediaLabel";
+          wrapper.appendChild(labelEl);
+        }
+
+        mediaContainer.appendChild(wrapper);
+      }
+    }
+
+    if (missingMediaDetected) {
+      const warning = document.createElement("div");
+      warning.className = "missingMediaWarning";
+      warning.textContent = "Media file missing. Please re-import the board.";
+      mediaContainer.appendChild(warning);
+    }
+
+    content.appendChild(mediaContainer);
+  }
+
+  questionModal.appendChild(content);
+
+  const buttonRow = document.createElement("div");
+  buttonRow.className = "questionButtons";
+
+  const showAns = document.createElement("button");
+  showAns.textContent = "Show Answer";
+  showAns.onclick = () => {
+    answerEl.classList.add("visibleAnswer");
+  };
+
+  const back = document.createElement("button");
+  back.textContent = "Back to Board";
+  back.onclick = () => {
+    questionModal.classList.remove("active");
+  };
+
+  buttonRow.appendChild(showAns);
+  buttonRow.appendChild(back);
+
+  questionModal.appendChild(buttonRow);
+}
+
 
 function addTeam() {
   let teamDiv = document.createElement("div");
@@ -640,33 +953,74 @@ function getLastQuestionValue() {
   return q.value || 0;
 }
 
-function showFinal() {
-  let q = currentBoard.final;
-  alert("Final Jeopardy:\n" + q.question + "\nAnswer:\n" + q.answer);
-}
-
 /* ---------- IMPORT / EXPORT ---------- */
 
-function exportBoard() {
+async function exportBoard() {
   let name = boardSelect.value;
-  let dataStr =
+  let boardData = boards[name];
+
+  const mediaBundle = [];
+
+  for (let cat of boardData.categories) {
+    for (let q of cat.questions) {
+      if (q.media) {
+        for (let m of q.media) {
+          const blob = await getMediaBlob(m.mediaId);
+          if (!blob) continue;
+
+          const base64 = await fileToBase64(blob);
+
+          mediaBundle.push({
+            id: m.mediaId,
+            type: blob.type,
+            data: base64
+          });
+        }
+      }
+    }
+  }
+
+  const exportData = {
+    board: boardData,
+    media: mediaBundle
+  };
+
+  const dataStr =
     "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(boards[name]));
-  let a = document.createElement("a");
+    encodeURIComponent(JSON.stringify(exportData));
+
+  const a = document.createElement("a");
   a.href = dataStr;
   a.download = name + ".json";
   a.click();
 }
 
-function importBoard(event) {
+document.getElementById("importBoardBtn").addEventListener("click", () => {
+  document.getElementById("importFile").click();
+});
+
+
+async function importBoard(event) {
   let file = event.target.files[0];
   let reader = new FileReader();
-  reader.onload = function (e) {
+
+  reader.onload = async function (e) {
     let data = JSON.parse(e.target.result);
+
     let name = prompt("Name for imported board?");
-    boards[name] = data;
+
+    boards[name] = data.board;
+
+    if (data.media && Array.isArray(data.media)) {
+      for (let m of data.media) {
+        const blob = await fetch(m.data).then(r => r.blob());
+        await saveMediaBlob(m.id, blob);
+      }
+    }
+
     saveLocal();
     refreshDropdown();
   };
+
   reader.readAsText(file);
 }
