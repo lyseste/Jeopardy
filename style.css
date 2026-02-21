@@ -340,6 +340,7 @@ textarea:focus {
     border-collapse: separate;
     border-spacing: 12px;
     margin-top: 0px;
+    table-layout: fixed;
 }
 
 #board th {
@@ -706,6 +707,7 @@ textarea:focus {
 }
 
 .teamControls button {
+    position: relative;
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -735,4 +737,45 @@ textarea:focus {
 .teamHintBtn span {
     font-size: 12px;
     transform: translateY(0.2px);
+}
+
+#addTeamBtn {
+    position: relative;
+}
+
+.team button::after, #addTeamBtn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.team button::before, #addTeamBtn::before {
+    content: "";
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: rgba(0,0,0,0.85) transparent transparent transparent;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.team button:hover::before,
+.team button:hover::after,
+#addTeamBtn:hover::before,
+#addTeamBtn:hover::after {
+    opacity: 1;
 }
