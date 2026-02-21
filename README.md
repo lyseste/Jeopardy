@@ -3,7 +3,6 @@
 </h1>
 <p align="center">
   <span align="center">A fully client-side Jeopardy-style board editor and player built with vanilla JavaScript. Create custom boards, attach media to questions, and play directly in the browser.</span>
-  <span align="center">Create custom boards, attach media to questions, and play directly in the browser.</span>
 </p>
 <br/><br/>
 
@@ -18,14 +17,12 @@
 
 ### 🖼 Media Support
 
-Attach media files to any question
-
-Media is:
-
-- Stored in IndexedDB
-- Persisted across refreshes
-- Loaded dynamically in play mode
-- Included in export/import
+- Attach media files to any question
+- Media is:
+  - Stored in IndexedDB
+  - Persisted across refreshes
+  - Loaded dynamically in play mode
+  - Included in export/import
 
 ### 🎮 Play Mode
 
