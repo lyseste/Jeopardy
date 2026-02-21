@@ -643,9 +643,6 @@ async function openQuestion(c, r, tile) {
   /* --------------------------
      MEDIA (Below question/answer)
   -------------------------- */
-  /* --------------------------
-     MEDIA (Below question/answer)
-  -------------------------- */
   if (q.media && q.media.length > 0) {
     const mediaContainer = document.createElement("div");
     mediaContainer.className = "questionMedia";
@@ -862,6 +859,7 @@ function addTeam() {
   let removeBtn = document.createElement("button");
   removeBtn.className = "removeTeamBtn";
   removeBtn.innerHTML = "<span>✕</span>";
+  removeBtn.setAttribute("data-tooltip", "Remove team");
   removeBtn.onclick = () => {
     teamDiv.remove();
     teams = teams.filter((t) => t.div !== teamDiv);
@@ -897,6 +895,7 @@ function addTeam() {
   let addBtn = document.createElement("button");
   addBtn.innerHTML = "<span>+</span>";
   addBtn.className = "teamAddBtn";
+  addBtn.setAttribute("data-tooltip", "Add points");
   addBtn.onclick = () => {
     team.score += getLastQuestionValue();
     updateScoreboard();
@@ -905,6 +904,7 @@ function addTeam() {
   let subBtn = document.createElement("button");
   subBtn.innerHTML = "<span>−</span>";
   subBtn.className = "teamSubBtn";
+  subBtn.setAttribute("data-tooltip", "Remove points");
   subBtn.onclick = () => {
     team.score -= getLastQuestionValue();
     updateScoreboard();
@@ -913,6 +913,7 @@ function addTeam() {
   const hintBtn = document.createElement("button");
   hintBtn.innerHTML = "<span>?</span>";
   hintBtn.className = "teamHintBtn";
+  hintBtn.setAttribute("data-tooltip", "Remove hint cost");
   hintBtn.onclick = () => {
     if (!currentQuestion) return;
 
