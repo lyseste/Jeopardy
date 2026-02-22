@@ -685,12 +685,12 @@ async function openQuestion(c, r, tile) {
 
         wrapper.appendChild(element);
 
-        if (labelText.trim()) {
-          const labelEl = document.createElement("span");
-          labelEl.textContent = labelText;
-          labelEl.className = "questionMediaLabel";
-          wrapper.appendChild(labelEl);
-        }
+        
+        const labelEl = document.createElement("span");
+        labelEl.textContent = labelText || "";
+        labelEl.className = "questionMediaLabel";
+        wrapper.appendChild(labelEl);
+        
 
         mediaContainer.appendChild(wrapper);
       }

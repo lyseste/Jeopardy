@@ -475,6 +475,7 @@ textarea:focus {
     color: var(--text);
     margin-top: 18px;
     text-align: center;
+    min-height: 24px;
     word-wrap: break-word;
 }
 
