@@ -2,32 +2,36 @@
    Base Theme
 ========================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
 
 :root {
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --surface-light: #243449;
-    --surface-dark: #1e293bea;
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
-    --text: #e2e8f0;
-    --muted: #7a818b;
-    --border: #334155;
-    --danger: #ef4444;
-    --scoreboard: rgba(15, 23, 42, 0.85);
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-light: #243449;
+  --surface-dark: #1e293bea;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --text: #e2e8f0;
+  --muted: #7a818b;
+  --border: #334155;
+  --danger: #ef4444;
+  --scoreboard: rgba(15, 23, 42, 0.85);
 }
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    font-family: "Google Sans", system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #0b1120);
-    color: var(--text);
-    padding: 30px;
+  margin: 0;
+  font-family:
+    "Google Sans",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: linear-gradient(135deg, #0f172a, #0b1120);
+  color: var(--text);
+  padding: 30px;
 }
 
 /* =========================
@@ -35,13 +39,13 @@ body {
 ========================= */
 
 h2 {
-    font-weight: 600;
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
 }
 
 h3 {
-    font-weight: 500;
+  font-weight: 500;
 }
 
 /* =========================
@@ -49,53 +53,57 @@ h3 {
 ========================= */
 
 button {
-    background: var(--surface);
-    font-family: "Google Sans", system-ui, -apple-system, sans-serif;
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 10px 18px;
-    margin: 6px;
-    border-radius: 999px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s ease;
+  background: var(--surface);
+  font-family:
+    "Google Sans",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  margin: 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 button:hover {
-    background: var(--primary);
-    border-color: var(--primary);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .modalBtn {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 10px 18px;
-    border-radius: 999px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    width: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    width: 80%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  width: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  width: 80%;
 }
 
 .modalBtn:hover {
-    background: var(--primary);
-    border-color: var(--primary);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .btnRowModal {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
 }
 
 #newBoardBtn,
@@ -103,8 +111,8 @@ button:hover {
 #generateGridBtn,
 #saveBoardBtn,
 #finalBtn {
-    background: var(--primary);
-    border: none;
+  background: var(--primary);
+  border: none;
 }
 
 #newBoardBtn:hover,
@@ -112,79 +120,79 @@ button:hover {
 #generateGridBtn:hover,
 #saveBoardBtn:hover,
 #finalBtn:hover {
-    background: var(--primary-hover);
+  background: var(--primary-hover);
 }
 
 .btnRowMain {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 20px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
 }
 
 #playBoardBtn {
-    width: 100px;
-    margin-bottom: 20px;
+  width: 100px;
+  margin-bottom: 20px;
 }
 
 #aboutInfo {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 
 .btnRowTeam {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #addTeamBtn {
-    background: var(--scoreboard);
-    color: var(--text);
-    border: 1px solid var(--border);
-    height: 32px;
-    width: 32px;
-    margin: 6px;
-    cursor: pointer;
-    font-weight: 400;
-    font-size: 20px;
-    transition: all 0.2s ease;
-    border-radius: 50%;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  background: var(--scoreboard);
+  color: var(--text);
+  border: 1px solid var(--border);
+  height: 32px;
+  width: 32px;
+  margin: 6px;
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 20px;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #addTeamBtn:hover {
-    background: var(--primary);
-    border: none;
+  background: var(--primary);
+  border: none;
 }
 
 #addTeamBtn span {
-    display: grid;
-    place-items: center;
-    line-height: 1;
-    transform: translateX(0.2px) translateY(-1px);
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  transform: translateX(0.2px) translateY(-1px);
 }
 
 /* =========================
@@ -192,33 +200,34 @@ button:hover {
 ========================= */
 
 .toastContainer {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 50px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 50px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .toast {
-    background-color: #4caf50;
-    color: white;
-    padding: 12px 20px;
-    margin-top: 10px;
-    border-radius: 6px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
+  background-color: #4caf50;
+  color: white;
+  padding: 12px 20px;
+  margin-top: 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
 }
 
 .toast.show {
-    opacity: 1;
-    transform: translateY(0);
+  opacity: 1;
+  transform: translateY(0);
 }
-
 
 /* =========================
    Inputs & Select
@@ -227,26 +236,31 @@ button:hover {
 input,
 select,
 textarea {
-    background: var(--surface);
-    font-family: "Google Sans", system-ui, -apple-system, sans-serif;
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 8px 12px;
-    margin: 5px;
-    border-radius: 999px;
-    transition: border 0.2s ease;
-    text-align: center;
+  background: var(--surface);
+  font-family:
+    "Google Sans",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  margin: 5px;
+  border-radius: 999px;
+  transition: border 0.2s ease;
+  text-align: center;
+  min-height: 40px;
 }
 
 textarea {
-    border-radius: 20px;
+  border-radius: 20px;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-    outline: none;
-    border-color: var(--primary);
+  outline: none;
+  border-color: var(--primary);
 }
 
 /* =========================
@@ -256,17 +270,17 @@ textarea:focus {
 #mainMenu,
 #editor,
 #playMode {
-    background: var(--surface-dark);
-    backdrop-filter: blur(12px);
-    padding: 16px;
-    padding-bottom: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  background: var(--surface-dark);
+  backdrop-filter: blur(12px);
+  padding: 16px;
+  padding-bottom: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 #mainMenu,
 #editor {
-    text-align: center;
+  text-align: center;
 }
 
 /* =========================
@@ -274,61 +288,61 @@ textarea:focus {
 ========================= */
 
 #editorGrid {
-    margin: 0 50px;
+  margin: 0 50px;
 }
 
 #editorGrid .editorGridColumns {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    gap: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  gap: 20px;
 }
 
 #editorGrid .editorTileIcon {
-    margin: 4px;
-    font-size: 11px;
-    opacity: 0.6;
+  margin: 4px;
+  font-size: 11px;
+  opacity: 0.6;
 }
 
 #editorGrid .editorColumn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 #editorGrid .editorColumn h3 {
-    margin-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 #editorGrid .editorTile {
-    width: 100%;
-    height: 50px;
-    font-size: 14px;
-    margin-bottom: 6px;
+  width: 100%;
+  height: 50px;
+  font-size: 14px;
+  margin-bottom: 6px;
 }
 
 #editorGrid .finalRow {
-    flex-basis: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-    margin-bottom: 20px;
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 #editorGrid .editFinalBtn {
-    width: 100%;
-    height: 50px;
-    font-size: 16px;
+  width: 100%;
+  height: 50px;
+  font-size: 16px;
 }
 
 #playMode {
-    padding-bottom: 30px;
+  padding-bottom: 30px;
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 /* =========================
@@ -336,49 +350,53 @@ textarea:focus {
 ========================= */
 
 #board {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 12px;
-    margin-top: 0px;
-    table-layout: fixed;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 12px;
+  margin-top: 0px;
+  table-layout: fixed;
 }
 
 #board th {
-    background: var(--surface-light);
-    padding: 16px;
-    border-radius: 16px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+  background: var(--surface-light);
+  padding: 16px;
+  border-radius: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 #board td {
-    text-align: center;
+  text-align: center;
 }
 
 .tile {
-    background: linear-gradient(145deg, #1e3a8a, #1d4ed8);
-    color: #f1e041;
-    font-weight: 800;
-    border-radius: 16px;
-    padding: 30px;
-    font-size: 24px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+  background: linear-gradient(145deg, #1e3a8a, #1d4ed8);
+  color: #f1e041;
+  font-weight: 800;
+  border-radius: 16px;
+  padding: 30px;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow:
+    rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
+    rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
 }
 
 .tile:hover {
-    transform: scale(1.03);
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 20px 25px -5px, rgba(0, 0, 0, 0.08) 0px 10px 10px -5px;
+  transform: scale(1.03);
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 20px 25px -5px,
+    rgba(0, 0, 0, 0.08) 0px 10px 10px -5px;
 }
 
 .tile.blank {
-    background: rgba(0, 0, 0, 0.05);
-    box-shadow: none;
-    cursor: default;
-    transform: none;
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
 }
 
 /* =========================
@@ -386,116 +404,122 @@ textarea:focus {
 ========================= */
 
 .modal {
-    display: none;
+  display: none;
 }
 
 .modal.active {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
-    animation: fadeIn 0.2s ease;
-    z-index: 1000;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+  z-index: 1000;
 }
 
 .modal h2 {
-    font-size: 28px;
-    margin-bottom: 20px;
+  font-size: 28px;
+  margin-bottom: 20px;
 }
 
 .modal h3 {
-    margin-top: 20px;
-    color: var(--primary);
+  margin-top: 20px;
+  color: var(--primary);
 }
 
-
 .questionContent {
-    text-align: center;
-    max-width: 100%;
-    margin: 0 auto;
+  text-align: center;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .questionHeader {
-    margin-bottom: 15px;
-    opacity: 0.8;
+  margin-bottom: 15px;
+  opacity: 0.8;
 }
 
 .questionText {
-    font-size: 40px;
+  font-size: 40px;
 }
 
 .questionAnswer {
-    font-size: 40px;
-    margin: 50px;
-    font-weight: bold;
-    color: var(--accent);
-    min-height: 2.5rem;
-    transition: opacity 0.25s ease;
+  font-size: 40px;
+  margin: 50px;
+  font-weight: bold;
+  color: var(--accent);
+  min-height: 2.5rem;
+  transition: opacity 0.25s ease;
 }
 
 .hiddenAnswer {
-    opacity: 0;
-    cursor: default;
+  opacity: 0;
+  cursor: default;
 }
 
 .visibleAnswer {
-    opacity: 1;
-    cursor: auto;
+  opacity: 1;
+  cursor: auto;
 }
 
 .questionMedia {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    max-width: 100%;
-    height: 50vh;
-    gap: 50px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+  height: 50vh;
+  gap: 50px;
 }
 
 .questionMediaWrapper {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .questionMedia video {
-    max-width: 100%;
-    height: 50vh;
-    width: auto;
-    border-radius: 12px;
+  max-width: 100%;
+  height: 50vh;
+  width: auto;
+  border-radius: 12px;
+}
+
+.questionMedia iframe {
+    display: block;
+    border: none;
+    width: 50vw;
+    min-height: 50vh;
 }
 
 .questionMediaLabel {
-    font-size: 18px;
-    color: var(--text);
-    margin-top: 18px;
-    text-align: center;
-    min-height: 24px;
-    word-wrap: break-word;
+  font-size: 18px;
+  color: var(--text);
+  margin-top: 18px;
+  text-align: center;
+  min-height: 24px;
+  word-wrap: break-word;
 }
 
 .questionButtons {
-    display: flex;
-    gap: 50px;
+  display: flex;
+  gap: 50px;
 }
 
 .questionButtons button {
-    width: 150px;
+  width: 150px;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
+  from {
+    opacity: 0;
+  }
 
-    to {
-        opacity: 1;
-    }
+  to {
+    opacity: 1;
+  }
 }
 
 /* =========================
@@ -504,279 +528,313 @@ textarea:focus {
 
 .editorCard,
 .modalContent {
-    background: var(--surface-dark);
-    padding: 30px;
-    border-radius: 20px;
-    max-height: 90vh;
-    width: 600px;
-    max-width: 90%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  background: var(--surface-dark);
+  padding: 30px;
+  border-radius: 20px;
+  max-height: 90vh;
+  width: 600px;
+  max-width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .editorCard {
-    overflow-y: auto;
-    flex: 1;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .editorButtons {
-    flex-shrink: 0;
-    padding: 10px;
-    margin-top: 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: center;
-    gap: 20px;
+  flex-shrink: 0;
+  padding: 10px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  gap: 20px;
 }
 
 .editorButtons button {
-    min-width: 100px;
+  min-width: 100px;
 }
 
 .editorCard,
 .modalContent label {
-    font-size: 14px;
-    color: var(--muted);
+  font-size: 14px;
+  color: var(--muted);
 }
 
 .editorCard textarea {
-    resize: none;
+  resize: none;
 }
 
 .modalContent h2 {
-    font-size: 20px;
-    margin-bottom: 0px;
+  font-size: 20px;
+  margin-bottom: 0px;
 }
 
 .modalContent label {
-    font-size: 16px;
+  font-size: 16px;
 }
 
 .mediaSection {
-    margin-top: 12px;
+  margin-top: 12px;
 }
 
 .mediaPreviewList {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .mediaItem {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  position: relative;
 }
 
 .mediaLabelInput {
-    width: 100%;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    font-size: 14px;
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.mediaRoleSelect {
+    width: 100px;
+}
+
+.mediaUrlPreviewRow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.mediaUrlInput {
+    flex: 1;
+}
+
+.previewMediaBtn {
+    min-width: 100px;
 }
 
 .mediaPreviewWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mediaPreviewWrapper iframe {
+  border: none;
+  margin-bottom: 5px;
+  width: 320px;
+  min-height: 180px;
+  display: block;
+  margin-bottom: 5px;
 }
 
 .mediaPreview {
-    max-width: 100%;
-    max-height: 150px;
-    border-radius: 8px;
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: 8px;
 }
 
 .removeMediaBtn {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px;
-    min-height: 32px;
-    padding: 0;
-    line-height: 1;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    flex-shrink: 0;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .removeMediaBtn:hover {
-    background: var(--danger);
-    color: black;
-    border: none;
+  background: var(--danger);
+  color: black;
+  border: none;
 }
 
 .removeMediaBtn span {
-    transform: translateX(0px) translateY(0.5px);
+  transform: translateX(0px) translateY(0.5px);
 }
 
 .missingMediaWarning {
-    margin-top: 15px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: rgba(255, 0, 0, 0.15);
-    color: #ff4d4d;
-    font-weight: 600;
-    text-align: center;
+  margin-top: 15px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff4d4d;
+  font-weight: 600;
+  text-align: center;
 }
-
 
 /* =========================
    Scoreboard
 ========================= */
 
 .scoreboard {
-    margin-top: 30px;
-    padding: 18px 28px;
-    display: flex;
-    gap: 18px;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-    z-index: 100;
+  margin-top: 30px;
+  padding: 18px 28px;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 100;
 }
 
 .team {
-    position: relative;
-    background: var(--scoreboard);
-    padding: 16px 30px;
-    border-radius: 16px;
-    min-width: 200px;
-    text-align: center;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
-    transition: 0.2s ease;
+  position: relative;
+  background: var(--scoreboard);
+  padding: 16px 30px;
+  border-radius: 16px;
+  min-width: 200px;
+  text-align: center;
+  box-shadow:
+    rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
+    rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+  transition: 0.2s ease;
 }
 
 .teamName {
-    margin: 0;
-    font-weight: 600;
-    outline: none;
+  margin: 0;
+  font-weight: 600;
+  outline: none;
 }
 
 .teamName:empty::before {
-    content: "Team Name";
-    color: var(--muted);
+  content: "Team Name";
+  color: var(--muted);
 }
 
 .team div {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--primary);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .removeTeamBtn {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-size: 14px;
-    cursor: pointer;
-    padding: 4px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
 }
 
 .removeTeamBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--danger);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--danger);
 }
 
 .teamControls {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
 }
 
 .teamControls button {
-    position: relative;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
 }
 
 .teamControls button span,
 .removeTeamBtn span {
-    display: grid;
-    place-items: center;
-    line-height: 1;
+  display: grid;
+  place-items: center;
+  line-height: 1;
 }
 
 .teamAddBtn span,
 .teamSubBtn span {
-    transform: translateX(0.2px) translateY(-0.8px);
+  transform: translateX(0.2px) translateY(-0.8px);
 }
 
 .removeTeamBtn span {
-    transform: translateX(0.3px);
+  transform: translateX(0.3px);
 }
 
 .teamHintBtn span {
-    font-size: 12px;
-    transform: translateY(0.2px);
+  font-size: 12px;
+  transform: translateY(0.2px);
 }
 
 #addTeamBtn {
-    position: relative;
+  position: relative;
 }
 
-.team button::after, #addTeamBtn::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+.team button::after,
+#addTeamBtn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
-.team button::before, #addTeamBtn::before {
-    content: "";
-    position: absolute;
-    bottom: 115%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: rgba(0,0,0,0.85) transparent transparent transparent;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+.team button::before,
+#addTeamBtn::before {
+  content: "";
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .team button:hover::before,
 .team button:hover::after,
 #addTeamBtn:hover::before,
 #addTeamBtn:hover::after {
-    opacity: 1;
+  opacity: 1;
 }
