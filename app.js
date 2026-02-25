@@ -27,8 +27,7 @@ function refreshDropdown() {
 }
 refreshDropdown();
 
-/* ---------- MEDIA DB ---------- */
-
+// ------------- MEDIA DATABASE -------------
 async function initMediaDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open("QuizMediaDB", 1);
@@ -84,19 +83,12 @@ function deleteMediaBlob(id) {
   tx.objectStore("media").delete(id);
 }
 
-/* ---------- MENU ACTIONS ---------- */
-
+// ------------- INITIALIZE -------------
 async function initApp() {
-  // Load boards
   boards = JSON.parse(localStorage.getItem("jeopardyBoards") || "{}");
-
-  // Initialize IndexedDB
   await initMediaDB();
-
-  // Refresh dropdown
   refreshDropdown();
 
-  // Attach event listeners (menu buttons, file inputs, etc.)
   document.getElementById("newBoardBtn").onclick = createBoard;
   document.getElementById("editBoardBtn").onclick = editBoard;
   document.getElementById("playBoardBtn").onclick = playBoard;
@@ -131,8 +123,7 @@ document.getElementById("closeInfo").addEventListener("click", () => {
   infoModal.classList.remove("active");
 });
 
-/* ---------- BOARD MANAGEMENT ---------- */
-
+// ------------- BOARD MANAGEMENT -------------
 function createBoard() {
   let name = prompt("Board name?");
   if (!name) return;
@@ -184,13 +175,11 @@ function backToMenu() {
   mainMenu.classList.remove("hidden");
 }
 
-/* ---------- EDITOR ---------- */
-
+// ------------- EDITOR -------------
 function generateGrid() {
   let requestedCats = parseInt(document.getElementById("catCount").value);
   let requestedRows = parseInt(document.getElementById("rowCount").value);
 
-  // Ensure visible settings exist
   if (!currentBoard.visibleCategories)
     currentBoard.visibleCategories = requestedCats;
   if (!currentBoard.visibleRows) currentBoard.visibleRows = requestedRows;
@@ -198,7 +187,6 @@ function generateGrid() {
   currentBoard.visibleCategories = requestedCats;
   currentBoard.visibleRows = requestedRows;
 
-  // Add missing categories if increasing
   while (currentBoard.categories.length < requestedCats) {
     currentBoard.categories.push({
       title: "Category " + (currentBoard.categories.length + 1),
@@ -206,7 +194,6 @@ function generateGrid() {
     });
   }
 
-  // Ensure each category has enough questions
   currentBoard.categories.forEach((cat) => {
     while (cat.questions.length < requestedRows) {
       cat.questions.push({
@@ -248,20 +235,16 @@ function renderEditorGrid() {
       btn.className = "editorTile";
       btn.onclick = () => editQuestion(c, r);
 
-      // Create value label
       const valueSpan = document.createElement("span");
       valueSpan.className = "editorTileValue";
       valueSpan.textContent = "$" + q.value;
 
-      // Create icon
       const icon = document.createElement("i");
       icon.className = getQuestionIconClass(q.type) + " editorTileIcon";
 
-      // Append both
       btn.appendChild(icon);
       btn.appendChild(valueSpan);
 
-      // Store reference for updates
       q._editorButton = btn;
 
       q._editorButton = btn;
@@ -409,7 +392,6 @@ function editFinal() {
 }
 
 async function editQuestionFinal(finalQuestion) {
-  // Temporarily store coordinates as null
   editingCoords = null;
   const q = finalQuestion;
 
@@ -456,9 +438,7 @@ async function renderMediaPreview() {
     const previewWrapper = document.createElement("div");
     previewWrapper.className = "mediaPreviewWrapper";
 
-    // ----------------------------
-    // LABEL + ROLE ROW
-    // ----------------------------
+    // Label and media display role
     const labelRoleRow = document.createElement("div");
     labelRoleRow.style.display = "flex";
     labelRoleRow.style.gap = "10px";
@@ -500,12 +480,10 @@ async function renderMediaPreview() {
     labelRoleRow.appendChild(roleSelect);
     wrapper.appendChild(labelRoleRow);
 
-    // ----------------------------
-    // EMBED OR UPLOADED MEDIA PREVIEW
-    // ----------------------------
     let preview;
+    
+    // Embed media
     if (isEmbed) {
-      // URL + Preview row for embeds
       const urlPreviewRow = document.createElement("div");
       urlPreviewRow.className = "mediaUrlPreviewRow";
 
@@ -521,19 +499,27 @@ async function renderMediaPreview() {
       const previewBtn = document.createElement("button");
       previewBtn.textContent = "Preview";
       previewBtn.className = "previewMediaBtn";
-      previewBtn.onclick = () => renderEmbedPreview(file, previewWrapper);
 
       urlPreviewRow.appendChild(urlInput);
       urlPreviewRow.appendChild(previewBtn);
       wrapper.appendChild(urlPreviewRow);
 
-      // Placeholder before preview
-      preview = document.createElement("div");
-      preview.className = "embedPreviewPlaceholder";
-      preview.textContent = "Embedded media (no preview yet)";
-      previewWrapper.appendChild(preview);
+      const previewContainer = document.createElement("div");
+      previewContainer.className = "embedPreviewContainer";
+
+      const placeholder = document.createElement("div");
+      placeholder.className = "embedPreviewPlaceholder";
+      placeholder.textContent = "Embedded media (no preview yet)";
+
+      previewContainer.appendChild(placeholder);
+      previewWrapper.appendChild(previewContainer);
+
+      if (file.url && file.url.trim()) {
+        renderEmbedPreview(file, previewContainer);
+      }
+
+      previewBtn.onclick = () => renderEmbedPreview(file, previewContainer);
     } else {
-      // Uploaded media preview
       if (file.type.startsWith("image/")) {
         preview = document.createElement("img");
       } else if (file.type.startsWith("audio/")) {
@@ -555,14 +541,14 @@ async function renderMediaPreview() {
       previewWrapper.appendChild(preview);
     }
 
-          const removeBtn = document.createElement("button");
-      removeBtn.innerHTML = "<span>✕</span>";
-      removeBtn.className = "removeMediaBtn";
-      removeBtn.onclick = () => {
-        if (file.mediaId) deleteMediaBlob(file.mediaId);
-        editingMedia.splice(index, 1);
-        renderMediaPreview();
-      };
+    const removeBtn = document.createElement("button");
+    removeBtn.innerHTML = "<span>✕</span>";
+    removeBtn.className = "removeMediaBtn";
+    removeBtn.onclick = () => {
+      if (file.mediaId) deleteMediaBlob(file.mediaId);
+      editingMedia.splice(index, 1);
+      renderMediaPreview();
+    };
 
     wrapper.appendChild(previewWrapper);
     previewWrapper.appendChild(removeBtn);
@@ -570,8 +556,8 @@ async function renderMediaPreview() {
   }
 }
 
-function renderEmbedPreview(file, previewWrapper) {
-  previewWrapper.innerHTML = "";
+function renderEmbedPreview(file, previewContainer) {
+  previewContainer.innerHTML = "";
 
   const url = file.url?.trim();
   if (!url) return;
@@ -586,7 +572,7 @@ function renderEmbedPreview(file, previewWrapper) {
     element = document.createElement("audio");
     element.controls = true;
     element.src = url;
-  } else if (url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+  } else if (url.match(/\.(jpg|jpeg|png|gif|webp|avif)$/i)) {
     element = document.createElement("img");
     element.src = url;
   } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
@@ -594,12 +580,12 @@ function renderEmbedPreview(file, previewWrapper) {
     element.src = convertYouTubeUrl(url);
     element.allowFullscreen = true;
   } else {
-    previewWrapper.textContent = "Unsupported embed format.";
+    previewContainer.textContent = "Unsupported embed format.";
     return;
   }
 
   element.className = "mediaPreview";
-  previewWrapper.appendChild(element);
+  previewContainer.appendChild(element);
 }
 
 function convertYouTubeUrl(url) {
@@ -619,7 +605,6 @@ document.getElementById("saveQuestionBtn").onclick = async () => {
     const { c, r } = editingCoords;
     q = currentBoard.categories[c].questions[r];
   } else {
-    // Saving Final Jeopardy
     q = currentBoard.final;
   }
 
@@ -706,8 +691,7 @@ function showToast(message, duration = 2000) {
   }, duration);
 }
 
-/* ---------- PLAY MODE ---------- */
-
+// ------------- PLAY MODE -------------
 function buildBoard() {
   let table = document.getElementById("board");
   table.innerHTML = "";
@@ -776,9 +760,7 @@ async function openPlayableQuestion(questionData, config = {}) {
 
   const q = questionData;
 
-  /* --------------------------
-     HEADER (Category + Value)
-  -------------------------- */
+  // Header
   const header = document.createElement("h2");
   header.className = "questionHeader";
 
@@ -790,27 +772,19 @@ async function openPlayableQuestion(questionData, config = {}) {
 
   content.appendChild(header);
 
-  /* --------------------------
-     QUESTION TEXT
-  -------------------------- */
+  // Question + Answer
   if (q.question && q.question.trim() !== "") {
     const questionText = document.createElement("div");
     questionText.className = "questionText";
     questionText.textContent = q.question;
     content.appendChild(questionText);
   }
-
-  /* --------------------------
-     ANSWER (Hidden Initially)
-  -------------------------- */
   const answerEl = document.createElement("div");
   answerEl.className = "questionAnswer hiddenAnswer";
   answerEl.textContent = q.answer;
   content.appendChild(answerEl);
 
-  /* --------------------------
-     MEDIA SETUP
-  -------------------------- */
+  // Media
   let mediaContainer = null;
   let questionMedia = [];
   let hintMedia = [];
@@ -839,7 +813,6 @@ async function openPlayableQuestion(questionData, config = {}) {
           continue;
         }
 
-        // fetch the blob for this file
         const blob = await getMediaBlob(file.mediaId);
         if (!blob) {
           missingMediaDetected = true;
@@ -891,7 +864,6 @@ async function openPlayableQuestion(questionData, config = {}) {
       }
     }
 
-    // Initially render only question media
     await renderMediaSet(questionMedia);
 
     if (hintMedia.length > 0) {
@@ -899,8 +871,9 @@ async function openPlayableQuestion(questionData, config = {}) {
       hintWrapper.className = "questionMediaWrapper";
 
       const hintBtn = document.createElement("button");
-      hintBtn.textContent = "Show Hint";
-      hintBtn.className = "mediaHintButton";
+      const cost = q.hintCost || 0;
+      hintBtn.textContent = cost > 0 ? `Show Hint ($${cost})` : "Show Hint";
+      hintBtn.className = "questionMediaHintBtn";
 
       hintBtn.onclick = async () => {
         await renderMediaSet([...questionMedia, ...hintMedia]);
@@ -917,15 +890,12 @@ async function openPlayableQuestion(questionData, config = {}) {
       mediaContainer.appendChild(hintWrapper);
     }
 
-    // Store renderMediaSet so answer button can use it
     content._renderMediaSet = renderMediaSet;
   }
 
   questionModal.appendChild(content);
 
-  /* --------------------------
-     BUTTON ROW
-  -------------------------- */
+  // Buttons
   const buttonRow = document.createElement("div");
   buttonRow.className = "questionButtons";
 
@@ -992,231 +962,6 @@ function renderEmbedInModal(file, container) {
 
   container.appendChild(wrapper);
 }
-
-/*async function openQuestion(c, r, tile) {
-  currentQuestion = { c, r, tile };
-  const q = currentBoard.categories[c].questions[r];
-  const category = currentBoard.categories[c];
-
-  questionModal.innerHTML = "";
-  questionModal.classList.add("active");
-
-  const content = document.createElement("div");
-  content.className = "questionContent";
-
-  const header = document.createElement("h2");
-  header.className = "questionHeader";
-  header.textContent = `${category.title}  $${q.value}`;
-  content.appendChild(header);
-
-  if (q.question && q.question.trim() !== "") {
-    const questionText = document.createElement("div");
-    questionText.className = "questionText";
-    questionText.textContent = q.question;
-    content.appendChild(questionText);
-  }
-
-  const answerEl = document.createElement("div");
-  answerEl.className = "questionAnswer";
-  answerEl.classList.add("hiddenAnswer");
-  answerEl.textContent = q.answer;
-  content.appendChild(answerEl);
-
-  if (q.media && q.media.length > 0) {
-    const mediaContainer = document.createElement("div");
-    mediaContainer.className = "questionMedia";
-
-    let missingMediaDetected = false;
-
-    for (let file of q.media) {
-      const blob = await getMediaBlob(file.mediaId);
-
-      if (!blob) {
-        missingMediaDetected = true;
-        continue;
-      }
-
-      const url = URL.createObjectURL(blob);
-
-      const labelText = file.label
-        ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${q.hintCost || 0}`)
-        : "";
-
-      let element;
-
-      if (blob.type.startsWith("video/")) {
-        element = document.createElement("video");
-        element.controls = true;
-        element.style.maxWidth = "80vw";
-      } else if (blob.type.startsWith("audio/")) {
-        element = document.createElement("audio");
-        element.controls = true;
-      } else if (blob.type.startsWith("image/")) {
-        element = document.createElement("img");
-        element.style.maxWidth = "600px";
-      }
-
-      if (element) {
-        element.src = url;
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "questionMediaWrapper";
-
-        wrapper.appendChild(element);
-
-        const labelEl = document.createElement("span");
-        labelEl.textContent = labelText || "";
-        labelEl.className = "questionMediaLabel";
-        wrapper.appendChild(labelEl);
-
-        mediaContainer.appendChild(wrapper);
-      }
-    }
-
-    if (missingMediaDetected) {
-      const warning = document.createElement("div");
-      warning.className = "missingMediaWarning";
-      warning.textContent = "Media file missing. Please re-import the board.";
-      mediaContainer.appendChild(warning);
-    }
-
-    content.appendChild(mediaContainer);
-  }
-
-  questionModal.appendChild(content);
-
-  const buttonRow = document.createElement("div");
-  buttonRow.className = "questionButtons";
-
-  const showAns = document.createElement("button");
-  showAns.textContent = "Show Answer";
-  showAns.onclick = () => {
-    answerEl.classList.add("visibleAnswer");
-
-    tile.classList.add("blank");
-    tile.textContent = "";
-  };
-
-  const back = document.createElement("button");
-  back.textContent = "Back to Board";
-  back.onclick = () => {
-    questionModal.classList.remove("active");
-  };
-
-  buttonRow.appendChild(showAns);
-  buttonRow.appendChild(back);
-
-  questionModal.appendChild(buttonRow);
-}*/
-
-/*async function openQuestionFinal(finalQ, title = "Final Jeopardy") {
-  questionModal.innerHTML = "";
-  questionModal.classList.add("active");
-
-  const content = document.createElement("div");
-  content.className = "questionContent";
-
-  const header = document.createElement("h2");
-  header.className = "questionHeader";
-  header.textContent = `${title}`;
-  content.appendChild(header);
-
-  if (finalQ.question) {
-    const questionText = document.createElement("div");
-    questionText.className = "questionText";
-    questionText.textContent = finalQ.question;
-    content.appendChild(questionText);
-  }
-
-  const answerEl = document.createElement("div");
-  answerEl.className = "questionAnswer hiddenAnswer";
-  answerEl.textContent = finalQ.answer;
-  content.appendChild(answerEl);
-
-  if (finalQ.media && finalQ.media.length > 0) {
-    const mediaContainer = document.createElement("div");
-    mediaContainer.className = "questionMedia";
-
-    let missingMediaDetected = false;
-
-    for (let file of finalQ.media) {
-      const blob = await getMediaBlob(file.mediaId);
-
-      if (!blob) {
-        missingMediaDetected = true;
-        continue;
-      }
-
-      const url = URL.createObjectURL(blob);
-      const labelText = file.label
-        ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${finalQ.hintCost || 0}`)
-        : "";
-
-      let element;
-
-      if (blob.type.startsWith("video/")) {
-        element = document.createElement("video");
-        element.controls = true;
-        element.style.maxWidth = "80vw";
-      } else if (blob.type.startsWith("audio/")) {
-        element = document.createElement("audio");
-        element.controls = true;
-      } else if (blob.type.startsWith("image/")) {
-        element = document.createElement("img");
-        element.style.maxWidth = "600px";
-      }
-
-      if (element) {
-        element.src = url;
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "questionMediaWrapper";
-
-        wrapper.appendChild(element);
-
-        if (labelText.trim()) {
-          const labelEl = document.createElement("span");
-          labelEl.textContent = labelText;
-          labelEl.className = "questionMediaLabel";
-          wrapper.appendChild(labelEl);
-        }
-
-        mediaContainer.appendChild(wrapper);
-      }
-    }
-
-    if (missingMediaDetected) {
-      const warning = document.createElement("div");
-      warning.className = "missingMediaWarning";
-      warning.textContent = "Media file missing. Please re-import the board.";
-      mediaContainer.appendChild(warning);
-    }
-
-    content.appendChild(mediaContainer);
-  }
-
-  questionModal.appendChild(content);
-
-  const buttonRow = document.createElement("div");
-  buttonRow.className = "questionButtons";
-
-  const showAns = document.createElement("button");
-  showAns.textContent = "Show Answer";
-  showAns.onclick = () => {
-    answerEl.classList.add("visibleAnswer");
-  };
-
-  const back = document.createElement("button");
-  back.textContent = "Back to Board";
-  back.onclick = () => {
-    questionModal.classList.remove("active");
-  };
-
-  buttonRow.appendChild(showAns);
-  buttonRow.appendChild(back);
-
-  questionModal.appendChild(buttonRow);
-}*/
 
 function addTeam() {
   let teamDiv = document.createElement("div");
@@ -1320,8 +1065,7 @@ function getLastQuestionValue() {
   return q.value || 0;
 }
 
-/* ---------- IMPORT / EXPORT ---------- */
-
+// ------------- IMPORT AND EXPORT -------------
 async function exportBoard() {
   let name = boardSelect.value;
   let boardData = boards[name];

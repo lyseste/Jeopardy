@@ -494,6 +494,10 @@ textarea:focus {
     min-height: 50vh;
 }
 
+.questionMedia audio {
+  width: 300px;
+}
+
 .questionMediaLabel {
   font-size: 18px;
   color: var(--text);
@@ -501,6 +505,12 @@ textarea:focus {
   text-align: center;
   min-height: 24px;
   word-wrap: break-word;
+}
+
+.questionMediaHintBtn {
+  height: 56px;
+  width: 300px;
+  font-size: 16px;
 }
 
 .questionButtons {
@@ -532,7 +542,6 @@ textarea:focus {
   padding: 30px;
   border-radius: 20px;
   max-height: 90vh;
-  width: 600px;
   max-width: 90%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   display: flex;
@@ -540,7 +549,12 @@ textarea:focus {
   gap: 10px;
 }
 
+.modalContent {
+  width: 600px;
+}
+
 .editorCard {
+    width: 50%;
   overflow-y: auto;
   flex: 1;
 }
