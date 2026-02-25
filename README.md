@@ -15,20 +15,17 @@
 - Edit question text and answers
 - Optional hint cost per question
 
-### 🖼 Media Support
+### 🖼 Media
 
-- Attach media files to any question
-- Media is:
-  - Stored in IndexedDB
-  - Persisted across refreshes
-  - Loaded dynamically in play mode
-  - Included in export/import
+- Attach multiple media files or embed URLs to any question
+- Support for video, audio, images
+- Add labels, hide certain media unless hints or answers are shown
+- Uploaded media is stored in IndexedDB
 
 ### 🎮 Play Mode
 
 - Interactive game board layout
 - Click questions to open modal view
-- Answer hidden until revealed
 - Media displayed inline
 
 ### 💾 Local Storage
