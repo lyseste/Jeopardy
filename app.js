@@ -1,11 +1,13 @@
 let boards = JSON.parse(localStorage.getItem("jeopardyBoards") || "{}");
 let currentBoard = null;
+let currentBoardName = null;
 let currentQuestion = null;
 let editingMedia = [];
+let inlinePanelCoords = null;
 let teams = [];
 let mediaDB;
+let currentPanelCommit = null; // async fn to flush the open question panel
 
-const boardSelect = document.getElementById("boardSelect");
 const mainMenu = document.getElementById("mainMenu");
 const editor = document.getElementById("editor");
 const playMode = document.getElementById("playMode");
@@ -16,48 +18,31 @@ function saveLocal() {
   localStorage.setItem("jeopardyBoards", JSON.stringify(boards));
 }
 
-function refreshDropdown() {
-  boardSelect.innerHTML = "";
-  for (let name in boards) {
-    let opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    boardSelect.appendChild(opt);
-  }
-}
-refreshDropdown();
-
 // ------------- MEDIA DATABASE -------------
 async function initMediaDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open("QuizMediaDB", 1);
-
     request.onupgradeneeded = function (event) {
       mediaDB = event.target.result;
       if (!mediaDB.objectStoreNames.contains("media")) {
         mediaDB.createObjectStore("media", { keyPath: "id" });
       }
     };
-
     request.onsuccess = function (event) {
       mediaDB = event.target.result;
       resolve();
     };
-
     request.onerror = function () {
       reject("IndexedDB failed to open.");
     };
   });
 }
-initMediaDB();
 
 function saveMediaBlob(id, blob) {
   return new Promise((resolve, reject) => {
     const tx = mediaDB.transaction("media", "readwrite");
     const store = tx.objectStore("media");
-
     store.put({ id, blob });
-
     tx.oncomplete = resolve;
     tx.onerror = reject;
   });
@@ -67,13 +52,8 @@ function getMediaBlob(id) {
   return new Promise((resolve, reject) => {
     const tx = mediaDB.transaction("media", "readonly");
     const store = tx.objectStore("media");
-
     const request = store.get(id);
-
-    request.onsuccess = () => {
-      resolve(request.result ? request.result.blob : null);
-    };
-
+    request.onsuccess = () => resolve(request.result ? request.result.blob : null);
     request.onerror = reject;
   });
 }
@@ -83,106 +63,334 @@ function deleteMediaBlob(id) {
   tx.objectStore("media").delete(id);
 }
 
+// ------------- BREADCRUMB -------------
+function setBreadcrumb(items) {
+  const bc = document.getElementById("breadcrumb");
+  bc.innerHTML = "";
+
+  items.forEach((item, i) => {
+    const span = document.createElement("span");
+    span.className = "breadcrumbItem" + (i === items.length - 1 ? " active" : "");
+    span.textContent = item.label;
+    if (item.onclick) {
+      span.classList.add("clickable");
+      span.onclick = item.onclick;
+    }
+    bc.appendChild(span);
+
+    if (i < items.length - 1) {
+      const sep = document.createElement("span");
+      sep.className = "breadcrumbSep";
+      sep.textContent = "›";
+      bc.appendChild(sep);
+    }
+  });
+}
+
+// ------------- BOARD CARDS -------------
+function refreshBoardCards() {
+  const container = document.getElementById("boardCards");
+  const emptyState = document.getElementById("emptyState");
+  container.innerHTML = "";
+
+  const names = Object.keys(boards);
+
+  if (names.length === 0) {
+    emptyState.classList.remove("hidden");
+    container.classList.add("hidden");
+    return;
+  }
+
+  emptyState.classList.add("hidden");
+  container.classList.remove("hidden");
+
+  names.forEach((name) => {
+    const board = boards[name];
+    const catCount = board.visibleCategories || board.categories?.length || 0;
+    const qCount = catCount * (board.visibleRows || 5);
+
+    const card = document.createElement("div");
+    card.className = "boardCard";
+
+    const cardName = document.createElement("div");
+    cardName.className = "boardCardName";
+    cardName.textContent = name;
+
+    const meta = document.createElement("div");
+    meta.className = "boardCardMeta";
+
+    const catStat = document.createElement("div");
+    catStat.className = "boardCardStat";
+    catStat.innerHTML = `<i class="fa-solid fa-table-columns"></i> ${catCount} categories`;
+
+    const qStat = document.createElement("div");
+    qStat.className = "boardCardStat";
+    qStat.innerHTML = `<i class="fa-solid fa-circle-question"></i> ${qCount} questions`;
+
+    meta.appendChild(catStat);
+    meta.appendChild(qStat);
+
+    const actions = document.createElement("div");
+    actions.className = "boardCardActions";
+
+    const playBtn = document.createElement("button");
+    playBtn.innerHTML = '<i class="fa-solid fa-play"></i> Play';
+    playBtn.onclick = () => playBoard(name);
+
+    const editBtn = document.createElement("button");
+    editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Edit';
+    editBtn.classList.add("secondaryBtn");
+    editBtn.onclick = () => editBoard(name);
+
+    const exportBtn = document.createElement("button");
+    exportBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+    exportBtn.classList.add("secondaryBtn");
+    exportBtn.title = "Export";
+    exportBtn.style.flex = "0";
+    exportBtn.onclick = () => exportBoard(name);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    deleteBtn.className = "boardCardDeleteBtn";
+    deleteBtn.title = "Delete board";
+    deleteBtn.onclick = () => deleteBoard(name);
+
+    actions.appendChild(playBtn);
+    actions.appendChild(editBtn);
+    actions.appendChild(exportBtn);
+    actions.appendChild(deleteBtn);
+
+    card.appendChild(cardName);
+    card.appendChild(meta);
+    card.appendChild(actions);
+
+    container.appendChild(card);
+  });
+}
+
 // ------------- INITIALIZE -------------
 async function initApp() {
   boards = JSON.parse(localStorage.getItem("jeopardyBoards") || "{}");
   await initMediaDB();
-  refreshDropdown();
+  refreshBoardCards();
+  setBreadcrumb([{ label: "Boards" }]);
 
   document.getElementById("newBoardBtn").onclick = createBoard;
-  document.getElementById("editBoardBtn").onclick = editBoard;
-  document.getElementById("playBoardBtn").onclick = playBoard;
-  document.getElementById("deleteBoardBtn").onclick = deleteBoard;
-  document.getElementById("exportBoardBtn").onclick = exportBoard;
+  document.getElementById("newBoardBtnEmpty").onclick = createBoard;
+  document.getElementById("importBoardBtn").onclick = () => document.getElementById("importFile").click();
   document.getElementById("importFile").onchange = importBoard;
-  document.getElementById("generateGridBtn").onclick = generateGrid;
   document.getElementById("saveBoardBtn").onclick = saveBoard;
   document.getElementById("addTeamBtn").onclick = addTeam;
   document.getElementById("finalBtn").onclick = openFinalQuestion;
 
+  // Inline number controls for grid dimensions
+  document.getElementById("catDecBtn").onclick = () => adjustGrid("cat", -1);
+  document.getElementById("catIncBtn").onclick = () => adjustGrid("cat", 1);
+  document.getElementById("rowDecBtn").onclick = () => adjustGrid("row", -1);
+  document.getElementById("rowIncBtn").onclick = () => adjustGrid("row", 1);
+
+  document.getElementById("catCount").addEventListener("change", () => generateGrid());
+  document.getElementById("rowCount").addEventListener("change", () => generateGrid());
+
   document.querySelectorAll(".backBtn").forEach((btn) => {
     btn.onclick = backToMenu;
+  });
+
+  initPanelResizer();
+  initBoardNameInput();
+
+  // About modal
+  document.getElementById("aboutInfo").addEventListener("click", () => {
+    document.getElementById("infoModal").classList.add("active");
+  });
+  document.getElementById("infoModal").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("infoModal")) {
+      document.getElementById("infoModal").classList.remove("active");
+    }
+  });
+  document.getElementById("closeInfo").addEventListener("click", () => {
+    document.getElementById("infoModal").classList.remove("active");
   });
 }
 initApp();
 
-const aboutBtn = document.getElementById("aboutInfo");
-const infoModal = document.getElementById("infoModal");
+function adjustGrid(type, delta) {
+  const input = document.getElementById(type === "cat" ? "catCount" : "rowCount");
+  const newVal = Math.max(1, Math.min(10, parseInt(input.value) + delta));
+  input.value = newVal;
+  generateGrid();
+}
 
-aboutBtn.addEventListener("click", () => {
-  infoModal.classList.add("active");
-});
+// ------------- BOARD RENAME -------------
+function initBoardNameInput() {
+  const input = document.getElementById("boardNameInput");
+  if (!input) return;
+  input.addEventListener("change", () => commitBoardRename(input));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      input.blur();
+    } else if (e.key === "Escape") {
+      input.value = currentBoardName || "";
+      input.blur();
+    }
+  });
+}
 
-infoModal.addEventListener("click", (e) => {
-  if (e.target === infoModal) {
-    infoModal.classList.remove("active");
+function commitBoardRename(input) {
+  if (!currentBoardName) return;
+  const newName = input.value.trim();
+  if (!newName) {
+    input.value = currentBoardName;
+    return;
   }
-});
+  if (newName === currentBoardName) return;
+  if (boards[newName]) {
+    showToast(`A board named "${newName}" already exists`);
+    input.value = currentBoardName;
+    return;
+  }
 
-document.getElementById("closeInfo").addEventListener("click", () => {
-  infoModal.classList.remove("active");
-});
+  // Reinsert under new key, preserving order
+  const reordered = {};
+  for (const key of Object.keys(boards)) {
+    if (key === currentBoardName) {
+      reordered[newName] = boards[currentBoardName];
+    } else {
+      reordered[key] = boards[key];
+    }
+  }
+  boards = reordered;
+  currentBoardName = newName;
+
+  saveLocal();
+  setBreadcrumb([
+    { label: "Boards", onclick: backToMenu },
+    { label: newName },
+  ]);
+  showToast("Board renamed");
+}
+
+// ------------- PANEL RESIZER -------------
+function initPanelResizer() {
+  const resizer = document.getElementById("panelResizer");
+  const panel = document.getElementById("questionPanel");
+  if (!resizer || !panel) return;
+
+  // Restore saved width
+  const saved = parseInt(localStorage.getItem("v3PanelWidth"), 10);
+  if (saved && saved >= 240 && saved <= 700) {
+    panel.style.width = saved + "px";
+  }
+
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  resizer.addEventListener("mousedown", (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startWidth = panel.getBoundingClientRect().width;
+    resizer.classList.add("dragging");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isResizing) return;
+    const delta = startX - e.clientX; // drag left = grow panel
+    const newWidth = Math.max(240, Math.min(700, startWidth + delta));
+    panel.style.width = newWidth + "px";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!isResizing) return;
+    isResizing = false;
+    resizer.classList.remove("dragging");
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    localStorage.setItem("v3PanelWidth", parseInt(panel.style.width, 10));
+  });
+}
 
 // ------------- BOARD MANAGEMENT -------------
 function createBoard() {
   let name = prompt("Board name?");
-  if (!name) return;
+  if (!name || !name.trim()) return;
+  name = name.trim();
   boards[name] = {
     categories: [],
     final: null,
     visibleCategories: 5,
     visibleRows: 5,
   };
-
   saveLocal();
-  refreshDropdown();
+  refreshBoardCards();
+  editBoard(name);
 }
 
-function deleteBoard() {
-  let name = boardSelect.value;
-  if (confirm("Delete board?")) {
+function deleteBoard(name) {
+  if (confirm(`Delete "${name}"?`)) {
     delete boards[name];
     saveLocal();
-    refreshDropdown();
+    refreshBoardCards();
   }
 }
 
-function editBoard() {
-  let name = boardSelect.value;
-  if (!name) return;
+function editBoard(name) {
+  currentBoardName = name;
   currentBoard = boards[name];
 
-  document.getElementById("catCount").value =
-    currentBoard.visibleCategories || 5;
+  document.getElementById("boardNameInput").value = name;
+  document.getElementById("catCount").value = currentBoard.visibleCategories || 5;
   document.getElementById("rowCount").value = currentBoard.visibleRows || 5;
 
   mainMenu.classList.add("hidden");
   editor.classList.remove("hidden");
+
+  setBreadcrumb([
+    { label: "Boards", onclick: backToMenu },
+    { label: name },
+  ]);
+
   generateGrid();
+  resetQuestionPanel();
 }
 
-function playBoard() {
-  let name = boardSelect.value;
+function playBoard(name) {
+  currentBoardName = name;
   currentBoard = boards[name];
+
   mainMenu.classList.add("hidden");
   playMode.classList.remove("hidden");
+
+  setBreadcrumb([
+    { label: "Boards", onclick: backToMenu },
+    { label: name },
+    { label: "Playing" },
+  ]);
+
   buildBoard();
 }
 
-function backToMenu() {
+async function backToMenu() {
+  await commitPanelEdits();
   editor.classList.add("hidden");
   playMode.classList.add("hidden");
   mainMenu.classList.remove("hidden");
+  currentBoard = null;
+  currentBoardName = null;
+  teams = [];
+  setBreadcrumb([{ label: "Boards" }]);
+  refreshBoardCards();
 }
 
 // ------------- EDITOR -------------
-function generateGrid() {
-  let requestedCats = parseInt(document.getElementById("catCount").value);
-  let requestedRows = parseInt(document.getElementById("rowCount").value);
-
-  if (!currentBoard.visibleCategories)
-    currentBoard.visibleCategories = requestedCats;
-  if (!currentBoard.visibleRows) currentBoard.visibleRows = requestedRows;
+async function generateGrid() {
+  if (!currentBoard) return;
+  await commitPanelEdits();
+  let requestedCats = parseInt(document.getElementById("catCount").value) || 5;
+  let requestedRows = parseInt(document.getElementById("rowCount").value) || 5;
 
   currentBoard.visibleCategories = requestedCats;
   currentBoard.visibleRows = requestedRows;
@@ -207,6 +415,7 @@ function generateGrid() {
   });
 
   renderEditorGrid();
+  resetQuestionPanel();
 }
 
 function renderEditorGrid() {
@@ -215,9 +424,9 @@ function renderEditorGrid() {
 
   const columnsRow = document.createElement("div");
   columnsRow.className = "editorGridColumns";
+
   for (let c = 0; c < currentBoard.visibleCategories; c++) {
     let category = currentBoard.categories[c];
-
     let div = document.createElement("div");
     div.className = "editorColumn";
 
@@ -225,15 +434,13 @@ function renderEditorGrid() {
     title.contentEditable = true;
     title.textContent = category.title;
     title.oninput = () => (category.title = title.textContent);
-
     div.appendChild(title);
 
     for (let r = 0; r < currentBoard.visibleRows; r++) {
       let q = category.questions[r];
-
       const btn = document.createElement("button");
       btn.className = "editorTile";
-      btn.onclick = () => editQuestion(c, r);
+      btn.onclick = () => selectTile(c, r, btn);
 
       const valueSpan = document.createElement("span");
       valueSpan.className = "editorTileValue";
@@ -244,11 +451,7 @@ function renderEditorGrid() {
 
       btn.appendChild(icon);
       btn.appendChild(valueSpan);
-
       q._editorButton = btn;
-
-      q._editorButton = btn;
-
       div.appendChild(btn);
     }
 
@@ -259,170 +462,370 @@ function renderEditorGrid() {
   const finalRow = document.createElement("div");
   finalRow.className = "finalRow";
   const editFinalBtn = document.createElement("button");
-  editFinalBtn.textContent = "Final Jeopardy";
+  editFinalBtn.innerHTML = '<i class="fa-solid fa-star"></i> Edit Final Jeopardy';
   editFinalBtn.className = "editFinalBtn";
-  editFinalBtn.onclick = () => editFinal();
-
+  editFinalBtn.onclick = () => selectFinal(editFinalBtn);
   finalRow.appendChild(editFinalBtn);
   grid.appendChild(finalRow);
 }
 
 function getQuestionIconClass(type) {
   switch (type) {
-    case "video":
-      return "fa-solid fa-video";
-    case "audio":
-      return "fa-solid fa-volume-high";
-    case "text":
-    default:
-      return "fa-solid fa-font";
+    case "video": return "fa-solid fa-video";
+    case "audio": return "fa-solid fa-volume-high";
+    default: return "fa-solid fa-font";
   }
 }
 
-let editingCoords = null;
+// ------------- INLINE PANEL -------------
+function clearTileSelection() {
+  document.querySelectorAll(".editorTile.selected, .editFinalBtn.selected")
+    .forEach(el => el.classList.remove("selected"));
+}
 
-async function editQuestion(c, r) {
-  try {
-    editingCoords = { c, r };
-    const q = currentBoard.categories[c].questions[r];
+async function commitPanelEdits() {
+  if (currentPanelCommit) {
+    const fn = currentPanelCommit;
+    currentPanelCommit = null;
+    await fn();
+  }
+}
 
-    document.getElementById("editValue").value = q.value;
-    document.getElementById("editHintCost").value = q.hintCost || 0;
-    document.getElementById("editType").value = q.type;
-    document.getElementById("editQuestionText").value = q.question;
-    document.getElementById("editAnswerText").value = q.answer;
+async function selectTile(c, r, btn) {
+  await commitPanelEdits();
+  clearTileSelection();
+  btn.classList.add("selected");
+  inlinePanelCoords = { c, r };
+  openInlinePanel({ c, r });
+}
 
-    editingMedia = [];
+async function selectFinal(btn) {
+  await commitPanelEdits();
+  if (!currentBoard.final) {
+    currentBoard.final = { value: 0, type: "text", question: "", answer: "", media: [], hintCost: 0 };
+  }
+  clearTileSelection();
+  btn.classList.add("selected");
+  inlinePanelCoords = { isFinal: true };
+  openInlinePanel({ isFinal: true });
+}
 
-    if (q.media && Array.isArray(q.media)) {
-      for (let m of q.media) {
-        if (m.type === "embed") {
+function resetQuestionPanel() {
+  inlinePanelCoords = null;
+  currentPanelCommit = null;
+  const panel = document.getElementById("questionPanel");
+  panel.innerHTML = `
+    <div class="panelPlaceholder">
+      <div class="placeholderIcon"><i class="fa-regular fa-hand-pointer"></i></div>
+      <p>Click any question tile<br>to edit it here</p>
+    </div>
+  `;
+}
+
+async function openInlinePanel(target) {
+  const isFinal = !!target.isFinal;
+  const q = isFinal
+    ? currentBoard.final
+    : currentBoard.categories[target.c].questions[target.r];
+  const panel = document.getElementById("questionPanel");
+
+  // Load existing media for this question
+  editingMedia = [];
+  if (q.media && Array.isArray(q.media)) {
+    for (let m of q.media) {
+      if (m.type === "embed") {
+        editingMedia.push({
+          type: "embed",
+          url: m.url || "",
+          label: m.label || "",
+          role: m.role || "question",
+          name: m.name || "Embedded Media",
+          mediaId: m.mediaId || null,
+        });
+      } else {
+        try {
+          const blob = await getMediaBlob(m.mediaId);
+          if (!blob) continue;
           editingMedia.push({
-            type: "embed",
-            url: m.url || "",
+            mediaId: m.mediaId,
             label: m.label || "",
+            type: blob.type,
+            name: m.name || "Imported File",
+            tempFile: blob,
             role: m.role || "question",
-            name: m.name || "Embedded Media",
-            mediaId: m.mediaId || null,
           });
-        } else {
-          try {
-            const blob = await getMediaBlob(m.mediaId);
-            if (!blob) continue;
-            editingMedia.push({
-              mediaId: m.mediaId,
-              label: m.label || "",
-              type: blob.type,
-              name: m.name || "Imported File",
-              tempFile: blob,
-              role: m.role || "question",
-            });
-          } catch (err) {
-            console.warn("Failed to load media", m, err);
-          }
+        } catch (err) {
+          console.warn("Failed to load media:", err);
         }
       }
     }
-
-    await renderMediaPreview();
-
-    document.getElementById("editMedia").value = "";
-    document.getElementById("editorModal").classList.add("active");
-  } catch (err) {
-    console.error("Error opening editor:", err);
-    alert("Failed to open editor. See console for details.");
   }
+
+  panel.innerHTML = "";
+
+  const content = document.createElement("div");
+  content.className = "panelContent";
+
+  // Header
+  const header = document.createElement("div");
+  header.className = "panelHeader";
+  const headerTitle = document.createElement("h3");
+  const headerLabel = () => isFinal
+    ? `Final Jeopardy · $${q.value}`
+    : `${currentBoard.categories[target.c].title} · $${q.value}`;
+  headerTitle.textContent = headerLabel();
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "panelCloseBtn";
+  closeBtn.innerHTML = "✕";
+  closeBtn.onclick = async () => {
+    await commitPanelEdits();
+    clearTileSelection();
+    resetQuestionPanel();
+  };
+  header.appendChild(headerTitle);
+  header.appendChild(closeBtn);
+  content.appendChild(header);
+
+  // Fields
+  const fields = document.createElement("div");
+  fields.className = "panelFields";
+
+  // Value
+  const valueField = makePanelField("Point Value", "number", q.value);
+  const valueInput = valueField.querySelector("input");
+  valueInput.min = "0";
+  fields.appendChild(valueField);
+
+  // Hint Cost
+  const hintField = makePanelField("Hint Cost", "number", q.hintCost || 0);
+  const hintInput = hintField.querySelector("input");
+  hintInput.min = "0";
+  fields.appendChild(hintField);
+
+  // Type select
+  const typeField = document.createElement("div");
+  typeField.className = "panelField";
+  const typeLabel = document.createElement("label");
+  typeLabel.textContent = "Type";
+  const typeSelect = document.createElement("select");
+  ["text", "video", "audio"].forEach((t) => {
+    const opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+    if (q.type === t) opt.selected = true;
+    typeSelect.appendChild(opt);
+  });
+  typeField.appendChild(typeLabel);
+  typeField.appendChild(typeSelect);
+  fields.appendChild(typeField);
+
+  // Question text
+  const qField = document.createElement("div");
+  qField.className = "panelField";
+  const qLabel = document.createElement("label");
+  qLabel.textContent = "Question";
+  const qTextarea = document.createElement("textarea");
+  qTextarea.value = q.question || "";
+  qTextarea.placeholder = "Enter the question...";
+  qField.appendChild(qLabel);
+  qField.appendChild(qTextarea);
+  fields.appendChild(qField);
+
+  // Answer
+  const aField = document.createElement("div");
+  aField.className = "panelField";
+  const aLabel = document.createElement("label");
+  aLabel.textContent = "Answer";
+  const aInput = document.createElement("input");
+  aInput.type = "text";
+  aInput.value = q.answer || "";
+  aInput.placeholder = "Enter the answer...";
+  aField.appendChild(aLabel);
+  aField.appendChild(aInput);
+  fields.appendChild(aField);
+
+  content.appendChild(fields);
+
+  // Media section
+  const mediaSection = document.createElement("div");
+  mediaSection.className = "panelMediaSection";
+  const mediaLbl = document.createElement("div");
+  mediaLbl.className = "panelMediaLabel";
+  mediaLbl.textContent = "Media";
+  mediaSection.appendChild(mediaLbl);
+
+  const mediaBtns = document.createElement("div");
+  mediaBtns.className = "panelMediaBtns";
+
+  const uploadBtn = document.createElement("button");
+  uploadBtn.className = "linkbtn";
+  uploadBtn.innerHTML = '<i class="fa-solid fa-paperclip"></i> Upload';
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.multiple = true;
+  fileInput.hidden = true;
+  uploadBtn.onclick = () => fileInput.click();
+
+  fileInput.addEventListener("change", async (e) => {
+    for (let file of e.target.files) {
+      const mediaId = "media_" + crypto.randomUUID();
+      await saveMediaBlob(mediaId, file);
+      editingMedia.push({ mediaId, label: "", type: file.type, name: file.name, role: "question" });
+    }
+    renderPanelMediaList(mediaListContainer);
+    e.target.value = "";
+  });
+
+  const embedBtn = document.createElement("button");
+  embedBtn.className = "linkbtn";
+  embedBtn.innerHTML = '<i class="fa-solid fa-link"></i> Embed URL';
+  embedBtn.onclick = () => {
+    editingMedia.push({ type: "embed", url: "", label: "", role: "question" });
+    renderPanelMediaList(mediaListContainer);
+  };
+
+  mediaBtns.appendChild(uploadBtn);
+  mediaBtns.appendChild(fileInput);
+  mediaBtns.appendChild(embedBtn);
+  mediaSection.appendChild(mediaBtns);
+
+  const mediaListContainer = document.createElement("div");
+  mediaListContainer.className = "mediaPreviewList";
+  mediaSection.appendChild(mediaListContainer);
+
+  renderPanelMediaList(mediaListContainer);
+  content.appendChild(mediaSection);
+
+  panel.appendChild(content);
+
+  // Capture the panel's current state into currentBoard. Called automatically
+  // when the user switches questions, closes the panel, navigates away, or
+  // clicks the Save Board button.
+  const capturedMedia = editingMedia;
+  currentPanelCommit = async () => {
+    q.value = parseInt(valueInput.value) || 0;
+    q.hintCost = parseInt(hintInput.value) || 0;
+    q.type = typeSelect.value;
+    q.question = qTextarea.value;
+    q.answer = aInput.value;
+
+    const finalMedia = [];
+    for (let m of capturedMedia) {
+      if (m.tempFile) await saveMediaBlob(m.mediaId, m.tempFile);
+      if (m.type === "embed" && !m.mediaId) m.mediaId = "embed_" + crypto.randomUUID();
+      finalMedia.push({
+        mediaId: m.mediaId,
+        label: m.label || "",
+        type: m.type,
+        name: m.name,
+        role: m.role || "question",
+        url: m.type === "embed" ? m.url : undefined,
+      });
+    }
+    q.media = finalMedia;
+
+    if (!isFinal && q._editorButton) {
+      const valueEl = q._editorButton.querySelector(".editorTileValue");
+      const iconEl = q._editorButton.querySelector(".editorTileIcon");
+      if (valueEl) valueEl.textContent = "$" + q.value;
+      if (iconEl) iconEl.className = getQuestionIconClass(q.type) + " editorTileIcon";
+    }
+
+    saveLocal();
+  };
 }
 
-document.getElementById("addMediaBtn").onclick = () => {
-  document.getElementById("editMedia").click();
-};
+function makePanelField(labelText, inputType, value) {
+  const field = document.createElement("div");
+  field.className = "panelField";
+  const label = document.createElement("label");
+  label.textContent = labelText;
+  const input = document.createElement("input");
+  input.type = inputType;
+  input.value = value;
+  field.appendChild(label);
+  field.appendChild(input);
+  return field;
+}
 
+function renderPanelMediaList(container) {
+  container.innerHTML = "";
+
+  editingMedia.forEach((file, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "mediaItem";
+
+    const row1 = document.createElement("div");
+    row1.style.cssText = "display:flex;gap:6px;align-items:center;";
+
+    const labelInput = document.createElement("input");
+    labelInput.type = "text";
+    labelInput.placeholder = "Label";
+    labelInput.value = file.label || "";
+    labelInput.className = "mediaLabelInput";
+    labelInput.style.cssText = "flex:1;min-height:unset;margin:0;";
+    labelInput.addEventListener("input", () => { file.label = labelInput.value; });
+
+    const roleSelect = document.createElement("select");
+    roleSelect.className = "mediaRoleSelect";
+    ["question", "hint", "answer"].forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r;
+      opt.textContent = r.charAt(0).toUpperCase() + r.slice(1);
+      if ((file.role || "question") === r) opt.selected = true;
+      roleSelect.appendChild(opt);
+    });
+    roleSelect.addEventListener("change", () => { file.role = roleSelect.value; });
+
+    const removeBtn = document.createElement("button");
+    removeBtn.innerHTML = "<span>✕</span>";
+    removeBtn.className = "removeMediaBtn";
+    removeBtn.onclick = () => {
+      if (file.mediaId) deleteMediaBlob(file.mediaId);
+      editingMedia.splice(index, 1);
+      renderPanelMediaList(container);
+    };
+
+    row1.appendChild(labelInput);
+    row1.appendChild(roleSelect);
+    row1.appendChild(removeBtn);
+    wrapper.appendChild(row1);
+
+    if (file.type === "embed") {
+      const urlInput = document.createElement("input");
+      urlInput.type = "text";
+      urlInput.placeholder = "Paste media URL...";
+      urlInput.value = file.url || "";
+      urlInput.style.cssText = "width:100%;min-height:unset;margin-top:6px;";
+      urlInput.addEventListener("input", () => { file.url = urlInput.value; });
+      wrapper.appendChild(urlInput);
+    } else {
+      const nameEl = document.createElement("div");
+      nameEl.style.cssText = "font-size:11px;color:var(--text-muted);margin-top:4px;";
+      nameEl.textContent = file.name || "File";
+      wrapper.appendChild(nameEl);
+    }
+
+    container.appendChild(wrapper);
+  });
+}
+
+// ------------- LEGACY EDITOR MODAL (kept for compatibility, no longer triggered) -------------
+document.getElementById("addMediaBtn").onclick = () => document.getElementById("editMedia").click();
 document.getElementById("addEmbedBtn").onclick = () => {
-  addEmbedInput();
+  editingMedia.push({ type: "embed", url: "", label: "", role: "question" });
+  renderMediaPreview();
 };
 
 document.getElementById("editMedia").addEventListener("change", async (e) => {
-  const files = e.target.files;
-
-  for (let file of files) {
+  for (let file of e.target.files) {
     const mediaId = "media_" + crypto.randomUUID();
-
     await saveMediaBlob(mediaId, file);
-
-    editingMedia.push({
-      mediaId: mediaId,
-      label: "",
-      type: file.type,
-      name: file.name,
-      role: "question",
-    });
+    editingMedia.push({ mediaId, label: "", type: file.type, name: file.name, role: "question" });
   }
-
   renderMediaPreview();
   e.target.value = "";
 });
-
-function addEmbedInput() {
-  const container = document.getElementById("mediaPreviewList");
-
-  const embedObj = {
-    type: "embed",
-    url: "",
-    label: "",
-    role: "question",
-  };
-
-  editingMedia.push(embedObj);
-  renderMediaPreview();
-}
-
-function editFinal() {
-  if (!currentBoard.final) {
-    currentBoard.final = {
-      value: 0,
-      type: "text",
-      question: "",
-      answer: "",
-      media: [],
-      hintCost: 0,
-    };
-  }
-  editQuestionFinal(currentBoard.final);
-}
-
-async function editQuestionFinal(finalQuestion) {
-  editingCoords = null;
-  const q = finalQuestion;
-
-  document.getElementById("editValue").value = q.value || 0;
-  document.getElementById("editHintCost").value = q.hintCost || 0;
-  document.getElementById("editType").value = q.type || "text";
-  document.getElementById("editQuestionText").value = q.question || "";
-  document.getElementById("editAnswerText").value = q.answer || "";
-
-  editingMedia = [];
-
-  if (q.media && Array.isArray(q.media)) {
-    for (let m of q.media) {
-      if (!m.mediaId) continue;
-      const blob = await getMediaBlob(m.mediaId);
-      if (!blob) continue;
-      editingMedia.push({
-        mediaId: m.mediaId,
-        label: m.label || "",
-        type: blob.type,
-        name: m.name || "Imported File",
-        tempFile: blob,
-        role: m.role || "question",
-      });
-    }
-  }
-
-  renderMediaPreview();
-  document.getElementById("editMedia").value = "";
-  document.getElementById("editorModal").classList.add("active");
-}
 
 async function renderMediaPreview() {
   const container = document.getElementById("mediaPreviewList");
@@ -438,51 +841,31 @@ async function renderMediaPreview() {
     const previewWrapper = document.createElement("div");
     previewWrapper.className = "mediaPreviewWrapper";
 
-    // Label and media display role
     const labelRoleRow = document.createElement("div");
-    labelRoleRow.style.display = "flex";
-    labelRoleRow.style.gap = "10px";
-    labelRoleRow.style.alignItems = "center";
+    labelRoleRow.style.cssText = "display:flex;gap:10px;align-items:center;";
 
     const labelInput = document.createElement("input");
     labelInput.type = "text";
     labelInput.placeholder = "Optional label: $(hint)";
     labelInput.value = file.label || "";
     labelInput.className = "mediaLabelInput";
-    labelInput.addEventListener("input", () => {
-      file.label = labelInput.value;
-    });
+    labelInput.addEventListener("input", () => { file.label = labelInput.value; });
 
     const roleSelect = document.createElement("select");
     roleSelect.className = "mediaRoleSelect";
-
-    const roles = [
-      { value: "question", text: "Question" },
-      { value: "hint", text: "Hint" },
-      { value: "answer", text: "Answer" },
-    ];
-
-    roles.forEach((r) => {
-      const option = document.createElement("option");
-      option.value = r.value;
-      option.textContent = r.text;
-      if ((file.role || "question") === r.value) {
-        option.selected = true;
-      }
-      roleSelect.appendChild(option);
+    ["question", "hint", "answer"].forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r;
+      opt.textContent = r.charAt(0).toUpperCase() + r.slice(1);
+      if ((file.role || "question") === r) opt.selected = true;
+      roleSelect.appendChild(opt);
     });
-
-    roleSelect.addEventListener("change", () => {
-      file.role = roleSelect.value;
-    });
+    roleSelect.addEventListener("change", () => { file.role = roleSelect.value; });
 
     labelRoleRow.appendChild(labelInput);
     labelRoleRow.appendChild(roleSelect);
     wrapper.appendChild(labelRoleRow);
 
-    let preview;
-    
-    // Embed media
     if (isEmbed) {
       const urlPreviewRow = document.createElement("div");
       urlPreviewRow.className = "mediaUrlPreviewRow";
@@ -492,9 +875,7 @@ async function renderMediaPreview() {
       urlInput.placeholder = "Enter media URL...";
       urlInput.value = file.url || "";
       urlInput.className = "mediaUrlInput";
-      urlInput.addEventListener("input", () => {
-        file.url = urlInput.value;
-      });
+      urlInput.addEventListener("input", () => { file.url = urlInput.value; });
 
       const previewBtn = document.createElement("button");
       previewBtn.textContent = "Preview";
@@ -506,20 +887,13 @@ async function renderMediaPreview() {
 
       const previewContainer = document.createElement("div");
       previewContainer.className = "embedPreviewContainer";
-
-      const placeholder = document.createElement("div");
-      placeholder.className = "embedPreviewPlaceholder";
-      placeholder.textContent = "Embedded media (no preview yet)";
-
-      previewContainer.appendChild(placeholder);
+      previewContainer.textContent = "Embedded media (no preview yet)";
       previewWrapper.appendChild(previewContainer);
 
-      if (file.url && file.url.trim()) {
-        renderEmbedPreview(file, previewContainer);
-      }
-
+      if (file.url && file.url.trim()) renderEmbedPreview(file, previewContainer);
       previewBtn.onclick = () => renderEmbedPreview(file, previewContainer);
     } else {
+      let preview;
       if (file.type.startsWith("image/")) {
         preview = document.createElement("img");
       } else if (file.type.startsWith("audio/")) {
@@ -532,11 +906,7 @@ async function renderMediaPreview() {
         preview = document.createElement("div");
         preview.textContent = file.name;
       }
-
-      if (file.mediaId && file.tempFile) {
-        preview.src = URL.createObjectURL(file.tempFile);
-      }
-
+      if (file.mediaId && file.tempFile) preview.src = URL.createObjectURL(file.tempFile);
       preview.className = "mediaPreview";
       previewWrapper.appendChild(preview);
     }
@@ -558,12 +928,10 @@ async function renderMediaPreview() {
 
 function renderEmbedPreview(file, previewContainer) {
   previewContainer.innerHTML = "";
-
   const url = file.url?.trim();
   if (!url) return;
 
   let element;
-
   if (url.match(/\.(mp4|webm|ogg)$/i)) {
     element = document.createElement("video");
     element.controls = true;
@@ -583,7 +951,6 @@ function renderEmbedPreview(file, previewContainer) {
     previewContainer.textContent = "Unsupported embed format.";
     return;
   }
-
   element.className = "mediaPreview";
   previewContainer.appendChild(element);
 }
@@ -599,14 +966,7 @@ document.getElementById("cancelQuestionBtn").onclick = () => {
 };
 
 document.getElementById("saveQuestionBtn").onclick = async () => {
-  let q;
-
-  if (editingCoords) {
-    const { c, r } = editingCoords;
-    q = currentBoard.categories[c].questions[r];
-  } else {
-    q = currentBoard.final;
-  }
+  const q = currentBoard.final;
 
   q.value = parseInt(document.getElementById("editValue").value) || 0;
   q.hintCost = parseInt(document.getElementById("editHintCost").value) || 0;
@@ -615,16 +975,9 @@ document.getElementById("saveQuestionBtn").onclick = async () => {
   q.answer = document.getElementById("editAnswerText").value;
 
   const finalMedia = [];
-
   for (let m of editingMedia) {
-    if (m.tempFile) {
-      await saveMediaBlob(m.mediaId, m.tempFile);
-    }
-
-    if (m.type === "embed" && !m.mediaId) {
-      m.mediaId = "embed_" + crypto.randomUUID();
-    }
-
+    if (m.tempFile) await saveMediaBlob(m.mediaId, m.tempFile);
+    if (m.type === "embed" && !m.mediaId) m.mediaId = "embed_" + crypto.randomUUID();
     finalMedia.push({
       mediaId: m.mediaId,
       label: m.label || "",
@@ -634,29 +987,11 @@ document.getElementById("saveQuestionBtn").onclick = async () => {
       url: m.type === "embed" ? m.url : undefined,
     });
   }
-
   q.media = finalMedia;
 
-  if (q._editorButton) {
-    const valueEl = q._editorButton.querySelector(".editorTileValue");
-    const iconEl = q._editorButton.querySelector(".editorTileIcon");
-
-    if (valueEl) {
-      valueEl.textContent = "$" + q.value;
-    }
-
-    if (iconEl) {
-      iconEl.className = getQuestionIconClass(q.type) + " editorTileIcon";
-    }
-  }
-
-  q.type = document.getElementById("editType").value;
-  q.question = document.getElementById("editQuestionText").value;
-  q.answer = document.getElementById("editAnswerText").value;
-
   document.getElementById("editorModal").classList.remove("active");
-
   saveLocal();
+  showToast("Final Jeopardy saved");
 };
 
 function fileToBase64(file) {
@@ -668,9 +1003,10 @@ function fileToBase64(file) {
   });
 }
 
-function saveBoard() {
+async function saveBoard() {
+  await commitPanelEdits();
   saveLocal();
-  showToast("Saved!");
+  showToast("Board saved!");
 }
 
 function showToast(message, duration = 2000) {
@@ -678,13 +1014,8 @@ function showToast(message, duration = 2000) {
   const toast = document.createElement("div");
   toast.className = "toast";
   toast.textContent = message;
-
   container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.classList.add("show");
-  }, 10);
-
+  setTimeout(() => { toast.classList.add("show"); }, 10);
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => container.removeChild(toast), 400);
@@ -693,26 +1024,29 @@ function showToast(message, duration = 2000) {
 
 // ------------- PLAY MODE -------------
 function buildBoard() {
-  let table = document.getElementById("board");
+  const table = document.getElementById("board");
   table.innerHTML = "";
   scoreboard.innerHTML = "";
 
-  let header = document.createElement("tr");
+  // Scoreboard title
+  const sbTitle = document.createElement("div");
+  sbTitle.className = "scoreboardTitle";
+  sbTitle.textContent = "Scoreboard";
+  scoreboard.appendChild(sbTitle);
+
+  const header = document.createElement("tr");
   for (let c = 0; c < currentBoard.visibleCategories; c++) {
-    let cat = currentBoard.categories[c];
-    let th = document.createElement("th");
-    th.textContent = cat.title;
+    const th = document.createElement("th");
+    th.textContent = currentBoard.categories[c].title;
     header.appendChild(th);
   }
   table.appendChild(header);
 
-  let rows = currentBoard.visibleRows;
-  for (let r = 0; r < rows; r++) {
-    let tr = document.createElement("tr");
+  for (let r = 0; r < currentBoard.visibleRows; r++) {
+    const tr = document.createElement("tr");
     for (let c = 0; c < currentBoard.visibleCategories; c++) {
-      let cat = currentBoard.categories[c];
-      let td = document.createElement("td");
-      let q = cat.questions[r];
+      const td = document.createElement("td");
+      const q = currentBoard.categories[c].questions[r];
       td.textContent = "$" + q.value;
       td.className = "tile";
       td.onclick = () => openQuestion(c, r, td);
@@ -724,71 +1058,48 @@ function buildBoard() {
 
 function openQuestion(c, r, tile) {
   currentQuestion = { c, r, tile };
-
   const q = currentBoard.categories[c].questions[r];
   const category = currentBoard.categories[c];
-
-  openPlayableQuestion(q, {
-    tile: tile,
-    categoryTitle: category.title,
-    value: q.value,
-    isFinal: false,
-  });
+  openPlayableQuestion(q, { tile, categoryTitle: category.title, value: q.value, isFinal: false });
 }
 
 function openFinalQuestion() {
-  openPlayableQuestion(currentBoard.final, {
-    isFinal: true,
-  });
+  if (!currentBoard.final) {
+    alert("No Final Jeopardy question has been set.");
+    return;
+  }
+  openPlayableQuestion(currentBoard.final, { isFinal: true });
 }
 
 async function openPlayableQuestion(questionData, config = {}) {
-  const {
-    tile = null,
-    categoryTitle = "",
-    value = "",
-    isFinal = false,
-  } = config;
-
+  const { tile = null, categoryTitle = "", value = "", isFinal = false } = config;
   const questionModal = document.getElementById("questionModal");
-
   questionModal.innerHTML = "";
   questionModal.classList.add("active");
 
   const content = document.createElement("div");
   content.className = "questionContent";
-
   const q = questionData;
 
-  // Header
   const header = document.createElement("h2");
   header.className = "questionHeader";
-
-  if (isFinal) {
-    header.textContent = "Final Jeopardy";
-  } else {
-    header.textContent = `${categoryTitle}  $${value}`;
-  }
-
+  header.textContent = isFinal ? "Final Jeopardy" : `${categoryTitle}  ·  $${value}`;
   content.appendChild(header);
 
-  // Question + Answer
   if (q.question && q.question.trim() !== "") {
     const questionText = document.createElement("div");
     questionText.className = "questionText";
     questionText.textContent = q.question;
     content.appendChild(questionText);
   }
+
   const answerEl = document.createElement("div");
   answerEl.className = "questionAnswer hiddenAnswer";
   answerEl.textContent = q.answer;
   content.appendChild(answerEl);
 
-  // Media
   let mediaContainer = null;
-  let questionMedia = [];
-  let hintMedia = [];
-  let answerMedia = [];
+  let questionMedia = [], hintMedia = [], answerMedia = [];
   let missingMediaDetected = false;
 
   if (q.media && q.media.length > 0) {
@@ -800,7 +1111,6 @@ async function openPlayableQuestion(questionData, config = {}) {
 
     mediaContainer = document.createElement("div");
     mediaContainer.className = "questionMedia";
-
     content.appendChild(mediaContainer);
 
     async function renderMediaSet(mediaArray) {
@@ -814,17 +1124,10 @@ async function openPlayableQuestion(questionData, config = {}) {
         }
 
         const blob = await getMediaBlob(file.mediaId);
-        if (!blob) {
-          missingMediaDetected = true;
-          continue;
-        }
+        if (!blob) { missingMediaDetected = true; continue; }
 
         const url = URL.createObjectURL(blob);
-
-        const labelText = file.label
-          ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${q.hintCost || 0}`)
-          : "";
-
+        const labelText = file.label ? file.label.replace(/\$\(\s*hint\s*\)/gi, `$${q.hintCost || 0}`) : "";
         let element;
 
         if (blob.type.startsWith("video/")) {
@@ -841,17 +1144,13 @@ async function openPlayableQuestion(questionData, config = {}) {
 
         if (element) {
           element.src = url;
-
           const wrapper = document.createElement("div");
           wrapper.className = "questionMediaWrapper";
-
           wrapper.appendChild(element);
-
           const labelEl = document.createElement("span");
           labelEl.textContent = labelText || "";
           labelEl.className = "questionMediaLabel";
           wrapper.appendChild(labelEl);
-
           mediaContainer.appendChild(wrapper);
         }
       }
@@ -869,24 +1168,16 @@ async function openPlayableQuestion(questionData, config = {}) {
     if (hintMedia.length > 0) {
       const hintWrapper = document.createElement("div");
       hintWrapper.className = "questionMediaWrapper";
-
       const hintBtn = document.createElement("button");
       const cost = q.hintCost || 0;
       hintBtn.textContent = cost > 0 ? `Show Hint ($${cost})` : "Show Hint";
       hintBtn.className = "questionMediaHintBtn";
-
-      hintBtn.onclick = async () => {
-        await renderMediaSet([...questionMedia, ...hintMedia]);
-      };
-
+      hintBtn.onclick = async () => { await renderMediaSet([...questionMedia, ...hintMedia]); };
       hintWrapper.appendChild(hintBtn);
-
-      // Add empty label placeholder so layout stays aligned
       const labelPlaceholder = document.createElement("span");
       labelPlaceholder.className = "questionMediaLabel";
       labelPlaceholder.textContent = "";
       hintWrapper.appendChild(labelPlaceholder);
-
       mediaContainer.appendChild(hintWrapper);
     }
 
@@ -895,21 +1186,14 @@ async function openPlayableQuestion(questionData, config = {}) {
 
   questionModal.appendChild(content);
 
-  // Buttons
   const buttonRow = document.createElement("div");
   buttonRow.className = "questionButtons";
 
   const showAns = document.createElement("button");
   showAns.textContent = "Show Answer";
-
   showAns.onclick = async () => {
     answerEl.classList.add("visibleAnswer");
-
-    if (tile) {
-      tile.classList.add("blank");
-      tile.textContent = "";
-    }
-
+    if (tile) { tile.classList.add("blank"); tile.textContent = ""; }
     if (mediaContainer && answerMedia.length > 0 && content._renderMediaSet) {
       await content._renderMediaSet(answerMedia);
     }
@@ -917,20 +1201,17 @@ async function openPlayableQuestion(questionData, config = {}) {
 
   const back = document.createElement("button");
   back.textContent = "Back to Board";
-  back.onclick = () => {
-    questionModal.classList.remove("active");
-  };
+  back.classList.add("secondaryBtn");
+  back.onclick = () => { questionModal.classList.remove("active"); };
 
   buttonRow.appendChild(showAns);
   buttonRow.appendChild(back);
-
   questionModal.appendChild(buttonRow);
 }
 
 function renderEmbedInModal(file, container) {
   const wrapper = document.createElement("div");
   wrapper.className = "questionMediaWrapper";
-
   let element;
   const url = file.url;
 
@@ -952,22 +1233,20 @@ function renderEmbedInModal(file, container) {
   }
 
   if (!element) return;
-
   wrapper.appendChild(element);
-
   const labelEl = document.createElement("span");
   labelEl.className = "questionMediaLabel";
   labelEl.textContent = file.label || "";
   wrapper.appendChild(labelEl);
-
   container.appendChild(wrapper);
 }
 
+// ------------- TEAMS (sidebar style) -------------
 function addTeam() {
-  let teamDiv = document.createElement("div");
+  const teamDiv = document.createElement("div");
   teamDiv.className = "team";
 
-  let removeBtn = document.createElement("button");
+  const removeBtn = document.createElement("button");
   removeBtn.className = "removeTeamBtn";
   removeBtn.innerHTML = "<span>✕</span>";
   removeBtn.setAttribute("data-tooltip", "Remove team");
@@ -976,17 +1255,15 @@ function addTeam() {
     teams = teams.filter((t) => t.div !== teamDiv);
   };
 
-  let name = document.createElement("h4");
+  const name = document.createElement("h4");
   name.contentEditable = true;
   name.textContent = "";
   name.className = "teamName";
   setTimeout(() => name.focus(), 0);
 
-  let scoreDiv = document.createElement("div");
+  const scoreDiv = document.createElement("div");
   scoreDiv.className = "teamScore";
-
   const team = { div: teamDiv, name, scoreDiv, score: 0 };
-
   scoreDiv.textContent = team.score;
   scoreDiv.contentEditable = true;
   scoreDiv.addEventListener("blur", () => {
@@ -1000,26 +1277,20 @@ function addTeam() {
     updateScoreboard();
   });
 
-  let controls = document.createElement("div");
+  const controls = document.createElement("div");
   controls.className = "teamControls";
 
-  let addBtn = document.createElement("button");
+  const addBtn = document.createElement("button");
   addBtn.innerHTML = "<span>+</span>";
   addBtn.className = "teamAddBtn";
   addBtn.setAttribute("data-tooltip", "Add points");
-  addBtn.onclick = () => {
-    team.score += getLastQuestionValue();
-    updateScoreboard();
-  };
+  addBtn.onclick = () => { team.score += getLastQuestionValue(); updateScoreboard(); };
 
-  let subBtn = document.createElement("button");
+  const subBtn = document.createElement("button");
   subBtn.innerHTML = "<span>−</span>";
   subBtn.className = "teamSubBtn";
   subBtn.setAttribute("data-tooltip", "Remove points");
-  subBtn.onclick = () => {
-    team.score -= getLastQuestionValue();
-    updateScoreboard();
-  };
+  subBtn.onclick = () => { team.score -= getLastQuestionValue(); updateScoreboard(); };
 
   const hintBtn = document.createElement("button");
   hintBtn.innerHTML = "<span>?</span>";
@@ -1027,49 +1298,37 @@ function addTeam() {
   hintBtn.setAttribute("data-tooltip", "Remove hint cost");
   hintBtn.onclick = () => {
     if (!currentQuestion) return;
-
     const { c, r } = currentQuestion;
-    const q = currentBoard.categories[c].questions[r];
-    const cost = q.hintCost || 0;
-
-    team.score -= cost;
+    team.score -= currentBoard.categories[c].questions[r].hintCost || 0;
     updateScoreboard();
   };
 
   controls.appendChild(addBtn);
   controls.appendChild(subBtn);
   controls.appendChild(hintBtn);
-
   teamDiv.appendChild(removeBtn);
   teamDiv.appendChild(name);
   teamDiv.appendChild(scoreDiv);
   teamDiv.appendChild(controls);
 
+  // Insert before the add button (keep add button last)
   scoreboard.appendChild(teamDiv);
-
   teams.push(team);
 }
 
 function updateScoreboard() {
-  teams.forEach((team) => {
-    team.scoreDiv.textContent = team.score;
-  });
+  teams.forEach((team) => { team.scoreDiv.textContent = team.score; });
 }
 
 function getLastQuestionValue() {
   if (!currentQuestion) return 0;
-
   const { c, r } = currentQuestion;
-  const q = currentBoard.categories[c].questions[r];
-
-  return q.value || 0;
+  return currentBoard.categories[c].questions[r].value || 0;
 }
 
 // ------------- IMPORT AND EXPORT -------------
-async function exportBoard() {
-  let name = boardSelect.value;
-  let boardData = boards[name];
-
+async function exportBoard(name) {
+  const boardData = boards[name];
   const mediaBundle = [];
 
   for (let cat of boardData.categories) {
@@ -1078,47 +1337,28 @@ async function exportBoard() {
         for (let m of q.media) {
           const blob = await getMediaBlob(m.mediaId);
           if (!blob) continue;
-
           const base64 = await fileToBase64(blob);
-
-          mediaBundle.push({
-            id: m.mediaId,
-            type: blob.type,
-            data: base64,
-          });
+          mediaBundle.push({ id: m.mediaId, type: blob.type, data: base64 });
         }
       }
     }
   }
 
-  const exportData = {
-    board: boardData,
-    media: mediaBundle,
-  };
-
-  const dataStr =
-    "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(exportData));
-
+  const exportData = { board: boardData, media: mediaBundle };
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData));
   const a = document.createElement("a");
   a.href = dataStr;
   a.download = name + ".json";
   a.click();
 }
 
-document.getElementById("importBoardBtn").addEventListener("click", () => {
-  document.getElementById("importFile").click();
-});
-
 async function importBoard(event) {
-  let file = event.target.files[0];
-  let reader = new FileReader();
-
+  const file = event.target.files[0];
+  const reader = new FileReader();
   reader.onload = async function (e) {
-    let data = JSON.parse(e.target.result);
-
-    let name = prompt("Name for imported board?");
-
+    const data = JSON.parse(e.target.result);
+    const name = prompt("Name for imported board?");
+    if (!name) return;
     boards[name] = data.board;
 
     if (data.media && Array.isArray(data.media)) {
@@ -1129,8 +1369,9 @@ async function importBoard(event) {
     }
 
     saveLocal();
-    refreshDropdown();
+    refreshBoardCards();
+    showToast("Board imported!");
   };
-
   reader.readAsText(file);
+  event.target.value = "";
 }

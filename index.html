@@ -2,102 +2,162 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Jeopardy by Lys</title>
-    <link rel="icon" type="image/x-icon" href="https://ik.imagekit.io/lyseste/lyseste-site/lys-logomark.png?tr=w-50,h-50">
+    <title>Jeopardy Studio by Lys</title>
     <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </head>
-
   <body>
     <div id="toastContainer" class="toastContainer"></div>
+
+    <!-- Top navigation bar — always visible -->
+    <header id="topNav">
+      <div class="navBrand">
+        <span class="navLogo">J!</span>
+        <span class="navTitle">Jeopardy Studio</span>
+      </div>
+      <nav class="breadcrumb" id="breadcrumb">
+        <span class="breadcrumbItem active">Boards</span>
+      </nav>
+      <button id="aboutInfo" class="navIconBtn" title="About">i</button>
+    </header>
+
+    <!-- Main Menu: board card grid -->
     <div id="mainMenu">
-      <h2>Jeopardy Creator</h2>
-      <button id="aboutInfo">i</button>
-      <button id="playBoardBtn">Play</button>
-      <select id="boardSelect"></select>
-      <div class="btnRowMain">
-        <button id="newBoardBtn">New Board</button>
-        <button id="editBoardBtn">Edit</button>
-        <button id="deleteBoardBtn">Delete</button>
-        <button id="exportBoardBtn">Export</button>
-        <button id="importBoardBtn">Import</button>
-        <input type="file" id="importFile" accept=".json" hidden />
+      <div class="pageHeader">
+        <div>
+          <h1>Your Boards</h1>
+          <p class="pageSubtitle">Select a board to play or edit</p>
+        </div>
+        <div class="pageActions">
+          <button id="importBoardBtn" class="secondaryBtn"><i class="fa-solid fa-upload"></i> Import</button>
+          <input type="file" id="importFile" accept=".json" hidden />
+          <button id="newBoardBtn"><i class="fa-solid fa-plus"></i> New Board</button>
+        </div>
+      </div>
+
+      <div id="boardCards" class="boardCards"></div>
+
+      <div id="emptyState" class="emptyState hidden">
+        <div class="emptyIcon">◻</div>
+        <h2>No boards yet</h2>
+        <p>Create your first Jeopardy board to get started.</p>
+        <button id="newBoardBtnEmpty"><i class="fa-solid fa-plus"></i> Create Board</button>
       </div>
     </div>
 
+    <!-- Editor: split layout with grid + inline question panel -->
     <div id="editor" class="hidden">
-      <h2>Board Editor</h2>
-      Categories:
-      <input type="number" id="catCount" value="5" min="1" /> Questions per
-      category: <input type="number" id="rowCount" value="5" min="1" />
-      <button id="generateGridBtn">Update</button>
-      <div id="editorGrid"></div>
-      <button id="saveBoardBtn">Save</button>
-      <button class="backBtn">Back</button>
-    </div>
+      <div class="editorLayout">
+        <!-- Left: category grid -->
+        <div class="editorMain">
+          <div class="editorToolbar">
+            <div class="toolbarLeft">
+              <div class="boardNameField">
+                <label for="boardNameInput">Board</label>
+                <input type="text" id="boardNameInput" placeholder="Board Name" autocomplete="off" />
+              </div>
+              <div class="gridControls">
+                <div class="controlGroup">
+                  <label>Categories</label>
+                  <div class="numberControl">
+                    <button class="numBtn" id="catDecBtn">−</button>
+                    <input type="number" id="catCount" value="5" min="1" max="10" />
+                    <button class="numBtn" id="catIncBtn">+</button>
+                  </div>
+                </div>
+                <div class="controlGroup">
+                  <label>Questions</label>
+                  <div class="numberControl">
+                    <button class="numBtn" id="rowDecBtn">−</button>
+                    <input type="number" id="rowCount" value="5" min="1" max="10" />
+                    <button class="numBtn" id="rowIncBtn">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="editorActions">
+              <button id="saveBoardBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+              <button class="backBtn secondaryBtn"><i class="fa-solid fa-arrow-left"></i> Boards</button>
+            </div>
+          </div>
+          <div id="editorGrid"></div>
+        </div>
 
-    <div id="playMode" class="hidden">
-      <button class="backBtn">Exit</button>
-      <button id="finalBtn">Final Jeopardy</button>
-      <table id="board"></table>
-      <div class="scoreboard" id="scoreboard"></div>
-      <div class="btnRowTeam">
-        <button id="addTeamBtn" data-tooltip="Add team"><span>+</span></button>
+        <!-- Resize handle for panel -->
+        <div id="panelResizer" class="panelResizer" title="Drag to resize"></div>
+
+        <!-- Right: inline question editor panel -->
+        <aside id="questionPanel" class="questionPanel">
+          <div class="panelPlaceholder">
+            <div class="placeholderIcon"><i class="fa-regular fa-hand-pointer"></i></div>
+            <p>Click any question tile<br>to edit it here</p>
+          </div>
+        </aside>
       </div>
     </div>
 
+    <!-- Play Mode -->
+    <div id="playMode" class="hidden">
+      <div class="playLayout">
+        <div class="playMain">
+          <table id="board"></table>
+        </div>
+        <div class="playBottom">
+          <div id="scoreboard" class="scoreboard"></div>
+          <div class="playBottomActions">
+            <button id="addTeamBtn" data-tooltip="Add team"><i class="fa-solid fa-plus"></i> Add Team</button>
+            <button id="finalBtn" class="finalBtn"><i class="fa-solid fa-star"></i> Final Jeopardy</button>
+            <button class="backBtn secondaryBtn"><i class="fa-solid fa-xmark"></i> Exit Game</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question display modal (play mode) -->
     <div id="questionModal" class="modal"></div>
-    
+
+    <!-- Editor question modal (used for Final Jeopardy editing) -->
     <div id="editorModal" class="modal">
       <div class="editorCard">
         <h2>Edit Question</h2>
-
         <label>Point Value</label>
         <input type="number" id="editValue" min="0" />
-        
         <label>Hint Cost</label>
         <input type="number" id="editHintCost" min="0" />
-
         <label>Question Type</label>
         <select id="editType">
           <option value="text">Text</option>
           <option value="video">Video</option>
           <option value="audio">Audio</option>
         </select>
-
         <label>Question Text</label>
         <input type="text" class="editorTextArea" id="editQuestionText"/>
         <label>Answer</label>
         <input type="text" class="editorTextArea" id="editAnswerText"/>
-
         <label>Media Files</label>
         <div class="mediaSection">
-          <button type="button" id="addMediaBtn" class="linkbtn">Upload Media</button>
+          <button type="button" id="addMediaBtn" class="linkbtn"><i class="fa-solid fa-paperclip"></i> Upload Media</button>
           <input type="file" id="editMedia" multiple hidden />
-          <button type="button" id="addEmbedBtn" class="linkbtn">Add Media Embed</button>
+          <button type="button" id="addEmbedBtn" class="linkbtn"><i class="fa-solid fa-link"></i> Add Embed</button>
           <div id="mediaPreviewList" class="mediaPreviewList"></div>
         </div>
         <div class="editorButtons">
           <button id="saveQuestionBtn">Save</button>
-          <button id="cancelQuestionBtn">Cancel</button>
+          <button id="cancelQuestionBtn" class="secondaryBtn">Cancel</button>
         </div>
       </div>
     </div>
-      
+
     <div id="infoModal" class="modal">
-        <div class="modalContent">
-            <h2>Jeopardy Creator App</h2>
-            <label>Made by Lys</label>
-            <label class="appVersion">App Version 1.1.0</label>
-            <div class="btnRowModal">
-                <!--<a class="linkbtn" href="https://twitter.com/lyseste" target="_blank"><i class="fa-brands fa-twitter"></i>Twitter</a>-->
-                <a class="modalBtn" href="https://github.com/lyseste/Jeopardy" target="_blank"><i class="fa-brands fa-github"></i>GitHub</a>
-                <button id="closeInfo" class="modalBtn"">Close</button>
-            </div>
+      <div class="modalContent">
+        <h2>Jeopardy Creator</h2>
+        <label>Made by Lys</label>
+        <label class="appVersion">App Version 1.2.0</label>
+        <div class="btnRowModal">
+          <a class="modalBtn" href="https://github.com/lyseste/Jeopardy" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
+          <button id="closeInfo" class="modalBtn">Close</button>
         </div>
+      </div>
     </div>
 
     <script src="app.js"></script>
