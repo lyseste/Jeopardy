@@ -17,12 +17,12 @@
 
 ### 🖼 Media Support
 
-- Attach media files to any question
-- Media is:
+- Upload and attach media files to any question
   - Stored in IndexedDB
   - Persisted across refreshes
   - Loaded dynamically in play mode
   - Included in export/import
+- Embed media from URL for larger files like videos
 
 ### 🎮 Play Mode
 
@@ -41,8 +41,3 @@
 - Export boards as JSON
 - Import previously exported boards
 - Media metadata preserved
-
----
-
-## 🛠 To-do:
-- Allow embeds/iframes for video and audio
