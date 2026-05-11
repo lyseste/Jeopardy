@@ -1,5 +1,5 @@
 <h1 align="center">
-  <span>Jeopardy Creator App</span>
+  <img src=assets/logo.png alt="Jeopardy Studio logo" height="72">
 </h1>
 <p align="center">
   <span align="center">A fully client-side Jeopardy-style board editor and player built with vanilla JavaScript. Create custom boards, attach media to questions, and play directly in the browser.</span>
