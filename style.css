@@ -57,6 +57,43 @@ body {
   top: 0;
   z-index: 100;
   flex-shrink: 0;
+  overflow: hidden;
+  transition: height 0.25s ease, border-bottom-width 0.25s ease;
+}
+
+body.navHidden { --nav-height: 0px; }
+body.navHidden #topNav { border-bottom-width: 0; }
+
+/* When the top bar is hidden, push the playable board down so the
+   floating "show nav" button doesn't overlap the first category header.
+   The value (74px) is chosen so that nav_height + padding_top stays
+   constant during the transition — keeps the board visually still. */
+body.navHidden .playMain { padding-top: 74px; }
+
+.editorLayout {
+  transition: height 0.25s ease;
+}
+
+.navShowBtn {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 200;
+  background: rgba(17, 24, 39, 0.9);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  /* Fade-out: immediate (no delay), then flip visibility once opacity finishes */
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+body.navHidden .navShowBtn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  /* Fade-in: wait for the top nav to finish collapsing (~0.25s), then fade */
+  transition: opacity 0.2s ease 0.25s, visibility 0s linear 0.25s;
 }
 
 .navBrand {
@@ -241,7 +278,7 @@ body {
   display: flex;
   gap: 6px;
   margin-top: auto;
-  padding-top: 4px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
 }
 
@@ -760,12 +797,15 @@ select option {
 #playMode {
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .playLayout {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--nav-height));
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -777,6 +817,9 @@ select option {
   align-items: flex-start;
   justify-content: center;
   min-height: 0;
+  /* Animate padding in lockstep with the nav collapse so the board's
+     absolute viewport position stays constant. */
+  transition: padding-top 0.25s ease;
 }
 
 .playBottom {
@@ -791,12 +834,16 @@ select option {
 }
 
 .playBottomActions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  gap: 10px;
 }
+
+.playBottomActions > :nth-child(1) { justify-self: start; }
+.playBottomActions > :nth-child(2) { justify-self: center; }
+.playBottomActions > :nth-child(3) { justify-self: end; }
 
 .finalBtn {
   background: linear-gradient(135deg, #d97706, #b45309) !important;

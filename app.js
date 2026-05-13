@@ -198,6 +198,7 @@ async function initApp() {
 
   initPanelResizer();
   initBoardNameInput();
+  initNavToggle();
 
   // About modal
   document.getElementById("aboutInfo").addEventListener("click", () => {
@@ -219,6 +220,21 @@ function adjustGrid(type, delta) {
   const newVal = Math.max(1, Math.min(10, parseInt(input.value) + delta));
   input.value = newVal;
   generateGrid();
+}
+
+// ------------- NAV COLLAPSE -------------
+function initNavToggle() {
+  const collapseBtn = document.getElementById("collapseNav");
+  const showBtn = document.getElementById("showNav");
+  if (!collapseBtn || !showBtn) return;
+
+  collapseBtn.addEventListener("click", () => {
+    document.body.classList.add("navHidden");
+  });
+
+  showBtn.addEventListener("click", () => {
+    document.body.classList.remove("navHidden");
+  });
 }
 
 // ------------- BOARD RENAME -------------
@@ -574,16 +590,7 @@ async function openInlinePanel(target) {
     ? `Final Jeopardy · $${q.value}`
     : `${currentBoard.categories[target.c].title} · $${q.value}`;
   headerTitle.textContent = headerLabel();
-  const closeBtn = document.createElement("button");
-  closeBtn.className = "panelCloseBtn";
-  closeBtn.innerHTML = "✕";
-  closeBtn.onclick = async () => {
-    await commitPanelEdits();
-    clearTileSelection();
-    resetQuestionPanel();
-  };
   header.appendChild(headerTitle);
-  header.appendChild(closeBtn);
   content.appendChild(header);
 
   // Fields

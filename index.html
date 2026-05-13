@@ -19,8 +19,12 @@
       <nav class="breadcrumb" id="breadcrumb">
         <span class="breadcrumbItem active">Boards</span>
       </nav>
+      <button id="collapseNav" class="navIconBtn" title="Hide top bar"><i class="fa-solid fa-arrow-up"></i></button>
       <button id="aboutInfo" class="navIconBtn" title="About">i</button>
     </header>
+
+    <!-- Floating button to restore the top bar when collapsed -->
+    <button id="showNav" class="navIconBtn navShowBtn" title="Show top bar"><i class="fa-solid fa-arrow-down"></i></button>
 
     <!-- Main Menu: board card grid -->
     <div id="mainMenu">
@@ -106,8 +110,8 @@
         <div class="playBottom">
           <div id="scoreboard" class="scoreboard"></div>
           <div class="playBottomActions">
-            <button id="addTeamBtn" data-tooltip="Add team"><i class="fa-solid fa-plus"></i> Add Team</button>
             <button id="finalBtn" class="finalBtn"><i class="fa-solid fa-star"></i> Final Jeopardy</button>
+            <button id="addTeamBtn" data-tooltip="Add team"><i class="fa-solid fa-plus"></i> Add Team</button>
             <button class="backBtn secondaryBtn"><i class="fa-solid fa-xmark"></i> Exit Game</button>
           </div>
         </div>
