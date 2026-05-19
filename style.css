@@ -1,348 +1,859 @@
 /* =========================
-   Base Theme
+   V3: Command Center — Redesigned Navigation
 ========================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 :root {
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --surface-light: #243449;
-  --surface-dark: #1e293bea;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
+  --bg: #0a0f1e;
+  --surface: #111827;
+  --surface-raised: #1a2236;
+  --surface-overlay: rgba(10, 15, 30, 0.97);
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-dim: rgba(16, 185, 129, 0.12);
+  --primary-glow: rgba(16, 185, 129, 0.2);
+  --accent: #38bdf8;
+  --accent-dim: rgba(56, 189, 248, 0.1);
   --text: #e2e8f0;
-  --muted: #7a818b;
-  --border: #334155;
-  --danger: #ef4444;
-  --scoreboard: rgba(15, 23, 42, 0.85);
+  --text-dim: #94a3b8;
+  --text-muted: #4b5563;
+  --border: #1e293b;
+  --border-bright: rgba(16, 185, 129, 0.25);
+  --danger: #f87171;
+  --danger-dim: rgba(248, 113, 113, 0.12);
+  --nav-height: 58px;
+  --sidebar-width: 280px;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family:
-    "Google Sans",
-    system-ui,
-    -apple-system,
-    sans-serif;
-  background: linear-gradient(135deg, #0f172a, #0b1120);
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
   color: var(--text);
-  padding: 30px;
-}
-
-/* =========================
-   Headings
-========================= */
-
-h2 {
-  font-weight: 600;
-  margin-bottom: 20px;
-  letter-spacing: 0.5px;
-}
-
-h3 {
-  font-weight: 500;
-}
-
-/* =========================
-   Buttons
-========================= */
-
-button {
-  background: var(--surface);
-  font-family:
-    "Google Sans",
-    system-ui,
-    -apple-system,
-    sans-serif;
-  color: var(--text);
-  border: 1px solid var(--border);
-  padding: 10px 18px;
-  margin: 6px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
-.modalBtn {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  padding: 10px 18px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  width: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  width: 80%;
-}
-
-.modalBtn:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
-.btnRowModal {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
 }
 
-#newBoardBtn,
-#playBoardBtn,
-#generateGridBtn,
-#saveBoardBtn,
-#finalBtn {
-  background: var(--primary);
-  border: none;
-}
-
-#newBoardBtn:hover,
-#playBoardBtn:hover,
-#generateGridBtn:hover,
-#saveBoardBtn:hover,
-#finalBtn:hover {
-  background: var(--primary-hover);
-}
-
-.btnRowMain {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 20px;
-}
-
-#playBoardBtn {
-  width: 100px;
-  margin-bottom: 20px;
-}
-
-#aboutInfo {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-
-.btnRowTeam {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#addTeamBtn {
-  background: var(--scoreboard);
-  color: var(--text);
-  border: 1px solid var(--border);
-  height: 32px;
-  width: 32px;
-  margin: 6px;
-  cursor: pointer;
-  font-weight: 400;
-  font-size: 20px;
-  transition: all 0.2s ease;
-  border-radius: 50%;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#addTeamBtn:hover {
-  background: var(--primary);
-  border: none;
-}
-
-#addTeamBtn span {
-  display: grid;
-  place-items: center;
-  line-height: 1;
-  transform: translateX(0.2px) translateY(-1px);
-}
+.hidden { display: none !important; }
 
 /* =========================
-   Toast Notification
+   Top Navigation
 ========================= */
 
-.toastContainer {
+#topNav {
+  height: var(--nav-height);
+  background: rgba(17, 24, 39, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: height 0.25s ease, border-bottom-width 0.25s ease;
+}
+
+body.navHidden { --nav-height: 0px; }
+body.navHidden #topNav { border-bottom-width: 0; }
+
+/* When the top bar is hidden, push the playable board down so the
+   floating "show nav" button doesn't overlap the first category header.
+   The value (74px) is chosen so that nav_height + padding_top stays
+   constant during the transition — keeps the board visually still. */
+body.navHidden .playMain { padding-top: 74px; }
+
+.editorLayout {
+  transition: height 0.25s ease;
+}
+
+.navShowBtn {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 50px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.toast {
-  background-color: #4caf50;
-  color: white;
-  padding: 12px 20px;
-  margin-top: 10px;
-  border-radius: 6px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  top: 12px;
+  right: 16px;
+  z-index: 200;
+  background: rgba(17, 24, 39, 0.9);
+  backdrop-filter: blur(12px);
   opacity: 0;
-  transform: translateY(20px);
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s ease;
+  visibility: hidden;
+  pointer-events: none;
+  /* Fade-out: immediate (no delay), then flip visibility once opacity finishes */
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
 }
 
-.toast.show {
+body.navHidden .navShowBtn {
   opacity: 1;
-  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  /* Fade-in: wait for the top nav to finish collapsing (~0.25s), then fade */
+  transition: opacity 0.2s ease 0.25s, visibility 0s linear 0.25s;
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.navLogo {
+  width: 32px;
+  height: 32px;
+  display: block;
+  border-radius: 6px;
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.navTitle {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.breadcrumbItem {
+  color: var(--text-dim);
+}
+
+.breadcrumbItem.active {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.breadcrumbItem.clickable {
+  cursor: pointer;
+  color: var(--primary);
+}
+
+.breadcrumbItem.clickable:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbSep {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.navIconBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-style: italic;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.navIconBtn:hover {
+  background: var(--surface-raised);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--text);
 }
 
 /* =========================
-   Inputs & Select
+   Main Menu — Board Cards
 ========================= */
 
-input,
-select,
-textarea {
+#mainMenu {
+  flex: 1;
+  padding: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 16px;
+}
+
+.pageHeader h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.pageActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+/* Board Cards Grid */
+.boardCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.boardCard {
   background: var(--surface);
-  font-family:
-    "Google Sans",
-    system-ui,
-    -apple-system,
-    sans-serif;
-  color: var(--text);
   border: 1px solid var(--border);
-  padding: 8px 12px;
-  margin: 5px;
-  border-radius: 999px;
-  transition: border 0.2s ease;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: default;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.boardCard:hover {
+  border-color: var(--border-bright);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
+
+.boardCard:hover::before {
+  opacity: 1;
+}
+
+.boardCardName {
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.2px;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.boardCardMeta {
+  display: flex;
+  gap: 12px;
+}
+
+.boardCardStat {
+  font-size: 12px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.boardCardStat i {
+  color: var(--primary);
+  font-size: 10px;
+}
+
+.boardCardActions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.boardCardActions button {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.boardCardDeleteBtn {
+  flex: 0 !important;
+  width: 32px;
+  color: var(--text-muted) !important;
+  background: transparent !important;
+}
+
+.boardCardDeleteBtn:hover {
+  background: var(--danger-dim) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+}
+
+/* Empty state */
+.emptyState {
   text-align: center;
-  min-height: 40px;
+  padding: 80px 24px;
+  color: var(--text-dim);
 }
 
-textarea {
-  border-radius: 20px;
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+.emptyState h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.emptyState p {
+  margin: 0 0 24px;
+  font-size: 14px;
+}
+
+/* =========================
+   Editor — Split Layout
+========================= */
+
+#editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editorLayout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - var(--nav-height));
+}
+
+.editorMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px 24px;
+  gap: 16px;
+}
+
+/* Editor toolbar */
+.editorToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.boardNameField {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.boardNameField label {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.boardNameField input {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: unset;
+  height: 30px;
+  margin: 0;
+  min-width: 160px;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+}
+
+.boardNameField input:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-/* =========================
-   Layout Sections
-========================= */
-
-#mainMenu,
-#editor,
-#playMode {
-  background: var(--surface-dark);
-  backdrop-filter: blur(12px);
-  padding: 16px;
-  padding-bottom: 30px;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+.gridControls {
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
 
-#mainMenu,
-#editor {
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.controlGroup label {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.numberControl {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.numBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  transition: all 0.15s ease;
+}
+
+.numBtn:hover {
+  background: var(--primary-dim);
+  color: var(--primary);
+}
+
+.numberControl input {
+  width: 40px;
+  min-height: unset;
+  height: 28px;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
   text-align: center;
 }
 
-/* =========================
-   Editor Grid
-========================= */
+.numberControl input:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: var(--border);
+  background: var(--primary-dim);
+}
 
+.editorActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Editor grid */
 #editorGrid {
-  margin: 0 50px;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 24px;
 }
 
 #editorGrid .editorGridColumns {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  gap: 10px;
   width: 100%;
-  gap: 20px;
-}
-
-#editorGrid .editorTileIcon {
-  margin: 4px;
-  font-size: 11px;
-  opacity: 0.6;
 }
 
 #editorGrid .editorColumn {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 100%;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
 }
 
 #editorGrid .editorColumn h3 {
-  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin: 0 0 8px;
+  text-align: center;
+  padding: 8px 6px;
+  background: var(--surface);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: text;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+#editorGrid .editorColumn h3:focus {
+  border-color: var(--primary);
+  color: var(--text);
+  background: var(--primary-dim);
 }
 
 #editorGrid .editorTile {
   width: 100%;
-  height: 50px;
-  font-size: 14px;
+  height: 44px;
+  font-size: 12px;
   margin-bottom: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+#editorGrid .editorTile.selected {
+  background: var(--primary-dim);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+#editorGrid .editorTileIcon {
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+#editorGrid .editorTileValue {
+  font-weight: 600;
 }
 
 #editorGrid .finalRow {
-  flex-basis: 100%;
   display: flex;
   justify-content: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin-top: 16px;
 }
 
 #editorGrid .editFinalBtn {
-  width: 100%;
-  height: 50px;
-  font-size: 16px;
+  padding: 10px 24px;
+  font-size: 13px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: 8px;
 }
+
+#editorGrid .editFinalBtn:hover,
+#editorGrid .editFinalBtn.selected {
+  background: var(--primary-dim);
+  border-color: var(--primary);
+  color: var(--primary);
+  border-style: solid;
+}
+
+/* =========================
+   Panel Resizer
+========================= */
+
+.panelResizer {
+  width: 5px;
+  flex-shrink: 0;
+  background: var(--border);
+  cursor: col-resize;
+  transition: background 0.15s ease;
+  position: relative;
+}
+
+.panelResizer:hover,
+.panelResizer.dragging {
+  background: var(--primary);
+}
+
+.panelResizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  right: -3px;
+}
+
+/* =========================
+   Inline Question Panel
+========================= */
+
+.questionPanel {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-width: 240px;
+  max-width: 700px;
+}
+
+.panelPlaceholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.placeholderIcon {
+  font-size: 28px;
+  opacity: 0.4;
+}
+
+.panelPlaceholder p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.panelContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+}
+
+.panelHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.panelCloseBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+.panelCloseBtn:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.panelFields {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.panelField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.panelField label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.panelField input,
+.panelField select,
+.panelField textarea {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin: 0;
+  min-height: unset;
+  text-align: left;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.panelField input:focus,
+.panelField select:focus,
+.panelField textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+select option {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.panelField textarea {
+  resize: vertical;
+  min-height: 64px;
+  border-radius: 8px;
+}
+
+.panelMediaSection {
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.panelMediaLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.panelMediaBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.panelSaveBtn {
+  margin: 0 20px 20px;
+  width: calc(100% - 40px);
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* =========================
+   Play Mode
+========================= */
 
 #playMode {
-  padding-bottom: 30px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.hidden {
-  display: none;
+.playLayout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.playMain {
+  flex: 1;
+  padding: 16px 24px;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 0;
+  /* Animate padding in lockstep with the nav collapse so the board's
+     absolute viewport position stays constant. */
+  transition: padding-top 0.25s ease;
+}
+
+.playBottom {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 16px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.playBottomActions {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.playBottomActions > :nth-child(1) { justify-self: start; }
+.playBottomActions > :nth-child(2) { justify-self: center; }
+.playBottomActions > :nth-child(3) { justify-self: end; }
+
+.finalBtn {
+  background: linear-gradient(135deg, #d97706, #b45309) !important;
+  border-color: transparent !important;
+  color: white !important;
+}
+
+.finalBtn:hover {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.3) !important;
 }
 
 /* =========================
@@ -352,66 +863,330 @@ textarea:focus {
 #board {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 12px;
-  margin-top: 0px;
+  border-spacing: 8px;
   table-layout: fixed;
 }
 
 #board th {
-  background: var(--surface-light);
-  padding: 16px;
-  border-radius: 16px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  padding: 14px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
+  font-size: 11px;
+  color: var(--text-dim);
 }
 
-#board td {
-  text-align: center;
-}
+#board td { text-align: center; }
 
 .tile {
-  background: linear-gradient(145deg, #1e3a8a, #1d4ed8);
-  color: #f1e041;
-  font-weight: 800;
-  border-radius: 16px;
-  padding: 30px;
-  font-size: 24px;
+  background: linear-gradient(160deg, #1a0a3d 0%, #0d1f6b 100%);
+  border: 1px solid rgba(30, 58, 95, 0.8);
+  color: #f1c40f;
   font-weight: 700;
+  border-radius: 10px;
+  padding: 24px 12px;
+  font-size: 22px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow:
-    rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
-    rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  text-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
 }
 
 .tile:hover {
-  transform: scale(1.03);
-  box-shadow:
-    rgba(0, 0, 0, 0.2) 0px 20px 25px -5px,
-    rgba(0, 0, 0, 0.08) 0px 10px 10px -5px;
+  transform: translateY(-3px);
+  border: 1px solid rgba(77, 117, 168, 0.8);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 16px rgba(56, 189, 248, 0.1);
+  color: #ffd426;
+  text-shadow: 0 0 20px rgba(241, 196, 15, 0.7);
 }
 
 .tile.blank {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(255,255,255,0.02);
+  border-color: transparent;
   box-shadow: none;
   cursor: default;
   transform: none;
+  color: transparent;
 }
 
 /* =========================
-   Question Modal
+   Scoreboard (horizontal)
 ========================= */
 
-.modal {
+.scoreboard {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+}
+
+.scoreboardTitle {
   display: none;
 }
+
+.team {
+  position: relative;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  padding: 12px 22px;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+  min-width: 160px;
+}
+
+.team:hover {
+  border-color: var(--border-bright);
+}
+
+.teamName {
+  margin: 0;
+  font-weight: 600;
+  outline: none;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.teamName:empty::before {
+  content: "Team Name";
+  color: var(--text-muted);
+}
+
+.team div {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 4px 0;
+}
+
+.removeTeamBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+.removeTeamBtn:hover {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.teamControls {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.teamControls button {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  margin: 0;
+}
+
+.teamControls button span,
+.removeTeamBtn span {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.teamAddBtn span,
+.teamSubBtn span { transform: translateX(0.2px) translateY(-0.8px); }
+.removeTeamBtn span { transform: translateX(0.3px); }
+.teamHintBtn span { font-size: 11px; transform: translateY(0.2px); }
+
+#addTeamBtn {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-dim);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+#addTeamBtn:hover {
+  background: var(--primary-dim);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* =========================
+   Buttons (global)
+========================= */
+
+button {
+  background: var(--surface-raised);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  margin: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #000;
+}
+
+#newBoardBtn,
+#newBoardBtnEmpty,
+#saveBoardBtn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #000;
+  font-weight: 600;
+}
+
+#newBoardBtn:hover,
+#newBoardBtnEmpty:hover,
+#saveBoardBtn:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.secondaryBtn {
+  background: transparent !important;
+  border-color: var(--border) !important;
+  color: var(--text-dim) !important;
+}
+
+.secondaryBtn:hover {
+  background: var(--surface-raised) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: var(--text) !important;
+}
+
+.linkbtn {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 5px;
+  margin: 0;
+}
+
+.linkbtn:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.modalBtn {
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 80%;
+}
+
+.modalBtn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #000;
+}
+
+.btnRowModal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================
+   Inputs (global)
+========================= */
+
+input,
+select,
+textarea {
+  background: var(--surface-raised);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  transition: border 0.15s ease;
+  text-align: left;
+  min-height: 36px;
+  font-size: 13px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* =========================
+   Question Play Modal
+========================= */
+
+.modal { display: none; }
 
 .modal.active {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: space-evenly;
   align-items: center;
@@ -421,15 +1196,7 @@ textarea:focus {
   z-index: 1000;
 }
 
-.modal h2 {
-  font-size: 28px;
-  margin-bottom: 20px;
-}
-
-.modal h3 {
-  margin-top: 20px;
-  color: var(--primary);
-}
+.modal h2 { font-size: 26px; margin-bottom: 20px; }
 
 .questionContent {
   text-align: center;
@@ -438,32 +1205,34 @@ textarea:focus {
 }
 
 .questionHeader {
-  margin-bottom: 15px;
-  opacity: 0.8;
+  margin-bottom: 16px;
+  opacity: 0.5;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .questionText {
-  font-size: 40px;
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .questionAnswer {
-  font-size: 40px;
-  margin: 50px;
-  font-weight: bold;
-  color: var(--accent);
+  font-size: 38px;
+  font-weight: 700;
+  margin: 48px;
+  color: var(--primary);
   min-height: 2.5rem;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.3s ease;
 }
 
-.hiddenAnswer {
-  opacity: 0;
-  cursor: default;
-}
-
-.visibleAnswer {
-  opacity: 1;
-  cursor: auto;
-}
+.hiddenAnswer { opacity: 0; cursor: default; }
+.visibleAnswer { opacity: 1; }
 
 .questionMedia {
   display: flex;
@@ -475,132 +1244,136 @@ textarea:focus {
   gap: 50px;
 }
 
-.questionMediaWrapper {
-  display: flex;
-  flex-direction: column;
-}
+.questionMediaWrapper { display: flex; flex-direction: column; }
 
 .questionMedia video {
   max-width: 100%;
   height: 50vh;
   width: auto;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .questionMedia iframe {
-    display: block;
-    border: none;
-    width: 50vw;
-    min-height: 50vh;
+  display: block;
+  border: none;
+  width: 50vw;
+  min-height: 50vh;
 }
 
-.questionMedia audio {
-  width: 300px;
-}
+.questionMedia audio { width: 300px; }
 
 .questionMediaLabel {
-  font-size: 18px;
-  color: var(--text);
-  margin-top: 18px;
+  font-size: 15px;
+  color: var(--text-dim);
+  margin-top: 12px;
   text-align: center;
   min-height: 24px;
-  word-wrap: break-word;
 }
 
 .questionMediaHintBtn {
-  height: 56px;
-  width: 300px;
-  font-size: 16px;
+  height: 48px;
+  width: 280px;
+  font-size: 13px;
+  justify-content: center;
+  text-align: center;
 }
 
 .questionButtons {
   display: flex;
-  gap: 50px;
+  gap: 12px;
 }
 
 .questionButtons button {
-  width: 150px;
+  width: 180px;
+  height: 46px;
+  font-size: 13px;
+  border-radius: 8px;
+  justify-content: center;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* =========================
-   Editor Modal
+   Editor Modal (Final Jeopardy)
 ========================= */
 
 .editorCard,
 .modalContent {
-  background: var(--surface-dark);
-  padding: 30px;
-  border-radius: 20px;
+  background: var(--surface-overlay);
+  border: 1px solid var(--border);
+  padding: 28px;
+  border-radius: 16px;
   max-height: 90vh;
   max-width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.modalContent {
-  width: 600px;
-}
+.modalContent { width: 420px; }
 
 .editorCard {
-    width: 50%;
+  width: 50%;
   overflow-y: auto;
   flex: 1;
+}
+
+.editorCard h2 {
+  font-size: 18px;
+  color: var(--text);
+  margin-bottom: 8px;
 }
 
 .editorButtons {
   flex-shrink: 0;
   padding: 10px;
-  margin-top: 20px;
+  margin-top: 16px;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 10px;
 }
 
-.editorButtons button {
-  min-width: 100px;
+.editorButtons button { min-width: 100px; justify-content: center; }
+
+.editorCard label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
 }
 
-.editorCard,
+.editorTextArea {
+  text-align: left;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.modalContent h2 { font-size: 18px; margin-bottom: 4px; }
+
 .modalContent label {
   font-size: 14px;
-  color: var(--muted);
+  color: var(--text-dim);
 }
 
-.editorCard textarea {
-  resize: none;
-}
+.appVersion { font-size: 12px; color: var(--text-muted); }
 
-.modalContent h2 {
-  font-size: 20px;
-  margin-bottom: 0px;
-}
+/* =========================
+   Media section
+========================= */
 
-.modalContent label {
-  font-size: 16px;
-}
-
-.mediaSection {
-  margin-top: 12px;
-}
+.mediaSection { margin-top: 8px; }
 
 .mediaPreviewList {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .mediaItem {
@@ -609,208 +1382,101 @@ textarea:focus {
   gap: 6px;
   padding: 10px;
   position: relative;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
 .mediaLabelInput {
   width: 100%;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 6px;
   border: 1px solid var(--border);
-  font-size: 14px;
+  font-size: 12px;
+  text-align: left;
+  min-height: unset;
+  margin: 0;
 }
 
 .mediaRoleSelect {
-    width: 100px;
+  width: 100px;
+  border-radius: 6px;
+  min-height: unset;
+  padding: 4px 8px;
+  margin: 0;
 }
 
 .mediaUrlPreviewRow {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-top: 5px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
 }
 
-.mediaUrlInput {
-    flex: 1;
-}
-
-.previewMediaBtn {
-    min-width: 100px;
-}
+.mediaUrlInput { flex: 1; margin: 0; }
+.previewMediaBtn { min-width: 70px; }
 
 .mediaPreviewWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .mediaPreviewWrapper iframe {
   border: none;
-  margin-bottom: 5px;
   width: 320px;
   min-height: 180px;
   display: block;
-  margin-bottom: 5px;
 }
 
 .mediaPreview {
   max-width: 100%;
-  max-height: 150px;
+  max-height: 130px;
   border-radius: 8px;
 }
 
 .removeMediaBtn {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px;
-  min-height: 32px;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px;
+  min-height: 28px;
   padding: 0;
-  line-height: 1;
-  border-radius: 50%;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   flex-shrink: 0;
+  background: transparent;
+  color: var(--text-muted);
 }
 
 .removeMediaBtn:hover {
-  background: var(--danger);
-  color: black;
-  border: none;
-}
-
-.removeMediaBtn span {
-  transform: translateX(0px) translateY(0.5px);
-}
-
-.missingMediaWarning {
-  margin-top: 15px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  background: rgba(255, 0, 0, 0.15);
-  color: #ff4d4d;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* =========================
-   Scoreboard
-========================= */
-
-.scoreboard {
-  margin-top: 30px;
-  padding: 18px 28px;
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-  z-index: 100;
-}
-
-.team {
-  position: relative;
-  background: var(--scoreboard);
-  padding: 16px 30px;
-  border-radius: 16px;
-  min-width: 200px;
-  text-align: center;
-  box-shadow:
-    rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
-    rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
-  transition: 0.2s ease;
-}
-
-.teamName {
-  margin: 0;
-  font-weight: 600;
-  outline: none;
-}
-
-.teamName:empty::before {
-  content: "Team Name";
-  color: var(--muted);
-}
-
-.team div {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.removeTeamBtn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-}
-
-.removeTeamBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--danger-dim);
+  border-color: var(--danger);
   color: var(--danger);
 }
 
-.teamControls {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
+.removeMediaBtn span { transform: translateX(0px) translateY(0.5px); }
+
+.missingMediaWarning {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--danger-dim);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: var(--danger);
+  font-weight: 500;
+  text-align: center;
+  font-size: 13px;
 }
 
-.teamControls button {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.teamControls button span,
-.removeTeamBtn span {
-  display: grid;
-  place-items: center;
-  line-height: 1;
-}
-
-.teamAddBtn span,
-.teamSubBtn span {
-  transform: translateX(0.2px) translateY(-0.8px);
-}
-
-.removeTeamBtn span {
-  transform: translateX(0.3px);
-}
-
-.teamHintBtn span {
-  font-size: 12px;
-  transform: translateY(0.2px);
-}
-
-#addTeamBtn {
-  position: relative;
-}
+/* =========================
+   Tooltips
+========================= */
 
 .team button::after,
 #addTeamBtn::after {
@@ -819,17 +1485,16 @@ textarea:focus {
   bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0,0,0,0.9);
+  border: 1px solid var(--border);
   color: #fff;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .team button::before,
@@ -839,16 +1504,50 @@ textarea:focus {
   bottom: 115%;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 6px;
+  border-width: 5px;
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+  border-color: rgba(0,0,0,0.9) transparent transparent transparent;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .team button:hover::before,
 .team button:hover::after,
 #addTeamBtn:hover::before,
-#addTeamBtn:hover::after {
+#addTeamBtn:hover::after { opacity: 1; }
+
+/* =========================
+   Toast
+========================= */
+
+.toastContainer {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 40px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--surface);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 10px 20px;
+  margin-top: 8px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.toast.show {
   opacity: 1;
+  transform: translateY(0);
 }

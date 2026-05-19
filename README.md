@@ -1,9 +1,14 @@
 <h1 align="center">
-  <span>Jeopardy Creator App</span>
+  <img src=assets/logo.png alt="Jeopardy Studio logo" height="72">
 </h1>
 <p align="center">
-  <span align="center">A fully client-side Jeopardy-style board editor and player built with vanilla JavaScript. Create custom boards, attach media to questions, and play directly in the browser.</span>
+  Jeopardy-style trivia game editor and player built with vanilla JavaScript.
+</p><p align="center"> 
+  Create custom boards, attach media to questions, and play directly in the browser.
 </p>
+<h3 align="center">
+  <a href="https://lyseste.github.io/Noteable">Open App</a>
+</h3>
 <br/><br/>
 
 ## ✨ Features
@@ -38,8 +43,3 @@
 - Export boards as JSON
 - Import previously exported boards
 - Media metadata preserved
-
----
-
-## 🛠 To-do:
-- Allow embeds/iframes for video and audio
