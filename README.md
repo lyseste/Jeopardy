@@ -7,7 +7,7 @@
   Create custom boards, attach media to questions, and play directly in the browser.
 </p>
 <h3 align="center">
-  <a href="https://lyseste.github.io/Noteable">Open App</a>
+  <a href="https://lyseste.com/Jeopardy">Open App</a>
 </h3>
 <br/><br/>
 
