@@ -1146,7 +1146,7 @@ async function openPlayableQuestion(questionData, config = {}) {
           element.controls = true;
         } else if (blob.type.startsWith("image/")) {
           element = document.createElement("img");
-          element.style.maxWidth = "600px";
+          element.style.maxHeight = "500px";
         }
 
         if (element) {
@@ -1348,6 +1348,15 @@ async function exportBoard(name) {
           mediaBundle.push({ id: m.mediaId, type: blob.type, data: base64 });
         }
       }
+    }
+  }
+
+  if (boardData.final && boardData.final.media) {
+    for (let m of boardData.final.media) {
+      const blob = await getMediaBlob(m.mediaId);
+      if (!blob) continue;
+      const base64 = await fileToBase64(blob);
+      mediaBundle.push({ id: m.mediaId, type: blob.type, data: base64 });
     }
   }
 
